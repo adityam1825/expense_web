@@ -2,19 +2,14 @@
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
 load_dotenv()
 
 class Config:
-    # Flask Secret Key for session management and security
-    # Loaded from .env for security
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'a_fallback_secret_key_if_env_not_found'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'a_fallback_secret_key_if_env_not_loaded'
 
-    # Database Configuration (PostgreSQL)
-    # Loaded from .env
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-                              'postgresql://user:password@localhost:5432/default_db'
-    SQLALCHEMY_TRACK_MODIFICATIONS = False # Suppress a warning
+    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
+    # --- ADD THIS LINE FOR DEBUGGING ---
+    print(f"DEBUG: SQLALCHEMY_DATABASE_URI loaded: {SQLALCHEMY_DATABASE_URI}")
+    # -----------------------------------
 
-    # Debug mode (set to False in production)
-    DEBUG = True
+    SQLALCHEMY_TRACK_MODIFICATIONS = False

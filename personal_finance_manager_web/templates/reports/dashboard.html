@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <h2>Welcome, {{ user.username }}!</h2>
+    <p>This is your personal finance dashboard. You can add expenses, income, view reports, and manage categories here.</p>
+
+    <div class="dashboard-summary">
+        <h3>Quick Overview</h3>
+        <p>Total Income: $0.00</p>
+        <p>Total Expenses: $0.00</p>
+        <p>Net Savings: $0.00</p>
+    </div>
+
+    <div class="quick-actions">
+        <h3>Quick Actions</h3>
+        <ul>
+            <li><a href="#">Record New Expense</a></li> {# Placeholder #}
+            <li><a href="#">Record New Income</a></li> {# Placeholder #}
+            <li><a href="#">Manage Categories</a></li> {# Placeholder #}
+        </ul>
+    </div>
+{% endblock %}
