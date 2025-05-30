@@ -15,7 +15,7 @@
                 <a href="#">Add Expense</a> {# Placeholder, implement later #}
                 <a href="#">Add Income</a> {# Placeholder, implement later #}
                 <a href="#">Categories</a> {# Placeholder, implement later #}
-                <a href="#">Budgets</a> {# Placeholder, implement later #}
+                <a href="{{ url_for('budgets.view_budgets') }}">Budgets</a> {# NEW: Link to view budgets #}
                 <a href="#">Reports</a> {# Placeholder, implement later #}
                 <a href="{{ url_for('auth.logout') }}">Logout ({{ current_user.username }})</a>
             {% else %}

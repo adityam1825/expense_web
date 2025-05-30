@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}My Budgets{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h2 class="mb-0">My Budgets</h2>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    {% if budgets %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Budget Amount (₹)</th>
+                                    <th>Spent (₹)</th>
+                                    <th>Remaining (₹)</th>
+                                    <th>Start Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for budget in budgets %}
+                                <tr>
+                                    <td>{{ budget.category }}</td>
+                                    <td>₹{{ "%.2f"|format(budget.amount | float) }}</td>
+                                    <td>₹{{ "%.2f"|format(budget.spent | float) }}</td> {# Placeholder, will be calculated later #}
+                                    <td class="{{ 'text-danger' if budget.remaining < 0 else 'text-success' }}">
+                                        ₹{{ "%.2f"|format(budget.remaining | float) }}
+                                    </td>
+                                    <td>{{ budget.start_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('budgets.edit_budget', budget_id=budget.id) }}" class="btn btn-sm btn-outline-primary me-1">Edit</a>
+                                        <form action="{{ url_for('budgets.delete_budget', budget_id=budget.id) }}" method="POST" style="display:inline;">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this budget?');">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center">You haven't set any budgets yet. Click "Set New Budget" to get started!</p>
+                    {% endif %}
+                    <div class="d-grid mt-4">
+                        <a href="{{ url_for('budgets.set_budget') }}" class="btn btn-primary">Set New Budget</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

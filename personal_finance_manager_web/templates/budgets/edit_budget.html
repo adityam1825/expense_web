@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Set Budget{% endblock %}
+{% block title %}Edit Budget{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -8,7 +8,7 @@
         <div class="col-md-8">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h2 class="mb-0">Set New Budget</h2>
+                    <h2 class="mb-0">Edit Budget for {{ budget.category }}</h2>
                 </div>
                 <div class="card-body">
                     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -22,13 +22,14 @@
                         {% endif %}
                     {% endwith %}
 
-                    <form method="POST" action="{{ url_for('budgets.set_budget') }}">
+                    <form method="POST" action="{{ url_for('budgets.edit_budget', budget_id=budget.id) }}">
                         <div class="mb-3">
                             <label for="category_id" class="form-label">Category</label>
                             <select class="form-control" id="category_id" name="category_id" required>
-                                <option value="">Select a Category</option>
                                 {% for category in categories %}
-                                    <option value="{{ category.id }}">{{ category.name }}</option>
+                                    <option value="{{ category.id }}" {% if category.id == selected_category_id %}selected{% endif %}>
+                                        {{ category.name }}
+                                    </option>
                                 {% endfor %}
                             </select>
                             {% if not categories %}
@@ -39,15 +40,12 @@
                         </div>
                         <div class="mb-3">
                             <label for="amount" class="form-label">Budget Amount (₹)</label>
-                            <input type="number" step="0.01" class="form-control" id="amount" name="amount" placeholder="e.g., 5000.00" required>
+                            <input type="number" step="0.01" class="form-control" id="amount" name="amount" value="{{ '%.2f'|format(budget.amount | float) }}" required>
                         </div>
                         
-                        {# You can add start_date/end_date inputs here if you want to allow users to specify them #}
-                        {# For simplicity, the Python code currently sets start_date to now and end_date to null #}
-                        
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success">Set Budget</button>
-                            <a href="{{ url_for('budgets.view_budgets') }}" class="btn btn-secondary">View My Budgets</a>
+                            <button type="submit" class="btn btn-success">Update Budget</button>
+                            <a href="{{ url_for('budgets.view_budgets') }}" class="btn btn-secondary">Cancel</a>
                         </div>
                     </form>
                 </div>
