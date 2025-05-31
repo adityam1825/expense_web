@@ -1,4 +1,8 @@
-# app.py (Use this version ONLY FOR DATABASE CREATION)
+# app.py
+
+from dotenv import load_dotenv # ADD THIS LINE
+load_dotenv() # ADD THIS LINE
+
 from flask import Flask, render_template, redirect, url_for, flash
 from config import Config
 from database import db
@@ -9,7 +13,7 @@ from models import User # Import User model
 # Import Blueprints
 from routes.auth import auth_bp
 from routes.budgets import budgets_bp # Import your budgets blueprint
-from routes.categories import categories_bp 
+from routes.categories import categories_bp
 
 def create_app():
     app = Flask(__name__)
@@ -23,6 +27,8 @@ def create_app():
 
     @login_manager.user_loader
     def load_user(user_id):
+        # The LegacyAPIWarning is just a warning, doesn't stop the app.
+        # It's an SQLAlchemy 2.0 suggestion to use session.get() instead.
         return User.query.get(int(user_id))
 
     # --- DATABASE TABLE CREATION (UNCOMMENT THIS ONLY ONCE!) ---
