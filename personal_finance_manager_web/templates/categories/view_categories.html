@@ -175,4 +175,30 @@
                                 {% for category in categories %}
                                 <tr>
                                     <td class="fw-bold">{{ category.name }}</td> {# Make category name bold #}
-                                    <td class="text-capitalize {% if category.type == '
+                                    <td class="text-capitalize {% if category.type == 'income' %}category-type-income{% elif category.type == 'expense' %}category-type-expense{% endif %}">
+                                        {{ category.type }}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('categories.edit_category', category_id=category.id) }}" class="btn btn-outline-primary btn-sm me-2">Edit</a>
+                                        <form action="{{ url_for('categories.delete_category', category_id=category.id) }}" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to delete this category? All associated transactions will also be affected.')">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center">No categories added yet. Start by adding a new one!</p>
+                    {% endif %}
+
+                    <div class="d-grid mt-4"> {# Added more top margin for the button #}
+                        <a href="{{ url_for('categories.add_category') }}" class="btn btn-primary btn-lg">Add New Category</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

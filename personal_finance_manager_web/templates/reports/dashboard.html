@@ -168,6 +168,9 @@
             <div class="dashboard-card shadow-sm">
                 <h3>Quick Overview</h3>
                 <div>
+                    {# Financial overview data will appear here once your transactions and reports features are ready! #}
+                    {# COMMENTED OUT FOR NOW - will be uncommented when transaction/reports data is available #}
+                    {#
                     <div class="summary-item">
                         <span><strong>Total Income:</strong></span>
                         <span class="summary-amount income-amount">₹{{ "%.2f"|format(total_income | float) }}</span>
@@ -176,11 +179,13 @@
                         <span><strong>Total Expenses:</strong></span>
                         <span class="summary-amount expense-amount">₹{{ "%.2f"|format(total_expenses | float) }}</span>
                     </div>
-                    <hr> {# Separator for net savings #}
+                    <hr>
                     <div class="summary-item">
                         <span><strong>Net Savings:</strong></span>
                         <span class="summary-amount net-savings-amount">₹{{ "%.2f"|format(net_savings | float) }}</span>
                     </div>
+                    #}
+                    <p>Financial overview data will appear here once your transactions and reports features are ready!</p>
                 </div>
             </div>
         </div>
