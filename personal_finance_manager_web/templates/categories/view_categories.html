@@ -2,12 +2,150 @@
 
 {% block title %}My Categories{% endblock %}
 
+{% block head %}
+    {{ super() }} {# This line is important to include anything from base.html's head block #}
+    <style>
+        /* General Body Styling (if not already in base.html or a linked external CSS) */
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; /* Modern font stack */
+            background-color: #f8f9fa; /* Lighter background for the entire app */
+        }
+
+        /* Card container adjustments for consistency */
+        .card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: none; /* Remove default card border */
+            border-radius: 0.75rem; /* Slightly more rounded corners */
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); /* Slightly larger shadow on hover */
+        }
+
+        /* Card header styling */
+        .card-header {
+            background-color: #007bff; /* Primary blue for header, consistent with forms */
+            color: white;
+            text-align: center;
+            padding: 1.25rem; /* Increased padding */
+            border-bottom: none !important; /* Remove default card-header border */
+            border-top-left-radius: 0.75rem !important; /* Match card border-radius */
+            border-top-right-radius: 0.75rem !important; /* Match card border-radius */
+        }
+
+        .card-header h2 {
+            font-size: 2rem; /* Larger heading */
+            font-weight: 600; /* Bolder heading */
+            margin-bottom: 0;
+        }
+
+        /* Card body padding */
+        .card-body {
+            padding: 2rem; /* Increased padding */
+        }
+
+        /* Table specific enhancements */
+        .table {
+            border-collapse: separate; /* Allows border-radius on cells */
+            border-spacing: 0;
+            margin-bottom: 1.5rem; /* Space below table */
+        }
+
+        .table thead th {
+            background-color: #e9ecef; /* Lighter grey for table header */
+            color: #495057; /* Darker text for header */
+            font-weight: 600;
+            vertical-align: middle;
+            padding: 1rem 1.25rem; /* More padding in header cells */
+            border-bottom: 2px solid #dee2e6; /* Clearer separator */
+        }
+
+        .table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f0f2f5; /* Light hover effect for rows */
+        }
+
+        .table tbody td {
+            vertical-align: middle;
+            padding: 1rem 1.25rem; /* Consistent padding in body cells */
+        }
+
+        /* Action buttons in table */
+        .btn-sm {
+            padding: 0.375rem 0.75rem; /* Standard small button padding */
+            font-size: 0.875rem; /* Standard small button font size */
+            border-radius: 0.3rem; /* Small button border-radius */
+        }
+
+        .btn-outline-primary {
+            color: #007bff;
+            border-color: #007bff;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-outline-danger {
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .btn-outline-danger:hover {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        /* "No categories yet" message */
+        .text-center {
+            font-size: 1.1rem;
+            color: #6c757d;
+            padding: 1.5rem 0; /* Add some padding */
+        }
+
+        /* Add New Category Button */
+        .d-grid {
+            margin-top: 2rem; /* More space above the button */
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem; /* Larger padding for main action button */
+            font-size: 1.1rem;
+            border-radius: 0.5rem; /* More rounded button */
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+
+        /* Specific styling for category type (optional, if you want different colors) */
+        .category-type-expense {
+            color: #dc3545; /* Red for expense */
+            font-weight: 500;
+        }
+        .category-type-income {
+            color: #28a745; /* Green for income */
+            font-weight: 500;
+        }
+
+    </style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-5 mb-5"> {# Increased top margin, added bottom margin #}
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-info text-white">
+        <div class="col-md-10 col-lg-9"> {# Adjusted column width for wider table on larger screens #}
+            <div class="card shadow-lg"> {# More pronounced shadow, consistent with forms #}
+                <div class="card-header"> {# bg-info removed, now uses custom blue defined in style #}
                     <h2 class="mb-0">My Categories</h2>
                 </div>
                 <div class="card-body">
@@ -24,7 +162,8 @@
 
                     {% if categories %}
                     <div class="table-responsive">
-                        <table class="table table-hover table-striped">
+                        <table class="table table-hover table-striped caption-top"> {# Added caption-top for potential future table caption #}
+                            <caption class="text-start mb-2">A list of your expense and income categories.</caption> {# Added a table caption for context #}
                             <thead class="table-light">
                                 <tr>
                                     <th>Name</th>
@@ -35,26 +174,5 @@
                             <tbody>
                                 {% for category in categories %}
                                 <tr>
-                                    <td>{{ category.name }}</td>
-                                    <td>{{ category.type | capitalize }}</td>
-                                    <td>
-                                        <a href="#" class="btn btn-sm btn-outline-primary me-1">Edit</a>
-                                        <a href="#" class="btn btn-sm btn-outline-danger">Delete</a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-center">You haven't added any categories yet. Click "Add New Category" to get started!</p>
-                    {% endif %}
-                    <div class="d-grid mt-4">
-                        <a href="{{ url_for('categories.add_category') }}" class="btn btn-primary">Add New Category</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
+                                    <td class="fw-bold">{{ category.name }}</td> {# Make category name bold #}
+                                    <td class="text-capitalize {% if category.type == '

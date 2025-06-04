@@ -2,15 +2,89 @@
 
 {% block title %}Set Budget{% endblock %}
 
+{% block head %}
+    {{ super() }} {# This line is important to include anything from base.html's head block #}
+    <style>
+        /* General Body Styling (if not already in base.html or a linked external CSS) */
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; /* Modern font stack */
+            background-color: #f8f9fa; /* Lighter background for the entire app */
+        }
+
+        /* Custom styles for the card */
+        .card-header {
+            border-bottom: none !important; /* Remove default card-header border */
+        }
+
+        /* Ensure consistent form element styling (Bootstrap handles most of this) */
+        .form-label {
+            font-weight: 600; /* Slightly bolder labels */
+            color: #343a40; /* Darker grey for labels */
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: .4rem; /* Slightly more rounded inputs/selects */
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 .25rem rgba(0, 123, 255, .25);
+        }
+
+        /* Button enhancements */
+        .btn-lg {
+            font-weight: 600; /* Make large buttons bolder */
+        }
+
+        .btn-primary {
+            background-color: #007bff; /* Standard Bootstrap primary blue */
+            border-color: #007bff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d; /* Standard grey */
+            border-color: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+
+        /* Specific styling for the 'No categories' message */
+        .form-text.text-danger a {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        /* Optional: Add a subtle transition to card hover for interactive feel */
+        .card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); /* Slightly larger shadow on hover */
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-5 mb-5"> {# Increased top margin, added bottom margin for consistent spacing #}
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h2 class="mb-0">Set New Budget</h2>
+        <div class="col-lg-7 col-md-9"> {# Adjusted column width for slightly wider card on larger screens #}
+            <div class="card shadow-lg border-0"> {# More pronounced shadow, removed default border #}
+                <div class="card-header bg-primary text-white text-center py-3 rounded-top"> {# Centered text, added padding, rounded top corners #}
+                    <h2 class="mb-0 fs-3">Set New Budget</h2> {# Increased font size #}
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4"> {# Increased padding for card body #}
                     {% with messages = get_flashed_messages(with_categories=true) %}
                         {% if messages %}
                             {% for category, message in messages %}
@@ -24,30 +98,40 @@
 
                     <form method="POST" action="{{ url_for('budgets.set_budget') }}">
                         <div class="mb-3">
-                            <label for="category_id" class="form-label">Category</label>
-                            <select class="form-control" id="category_id" name="category_id" required>
-                                <option value="">Select a Category</option>
+                            <label for="category_id" class="form-label fw-bold">Category</label> {# Made label bold #}
+                            <select class="form-select" id="category_id" name="category_id" required aria-label="Select a category for the budget"> {# Changed from form-control to form-select, added aria-label #}
+                                <option value="">Select a Category</option> {# Added a placeholder option #}
                                 {% for category in categories %}
                                     <option value="{{ category.id }}">{{ category.name }}</option>
                                 {% endfor %}
                             </select>
                             {% if not categories %}
-                                <small class="form-text text-muted">
-                                    No expense categories found. Please <a href="{{ url_for('categories.add_category') }}">add some categories</a> first.
+                                <small class="form-text text-danger mt-2 d-block"> {# Changed text-muted to text-danger, added d-block for better spacing #}
+                                    No expense categories found. Please <a href="{{ url_for('categories.add_category') }}" class="alert-link">add some categories</a> first.
                                 </small>
                             {% endif %}
                         </div>
-                        <div class="mb-3">
-                            <label for="amount" class="form-label">Budget Amount (₹)</label>
-                            <input type="number" step="0.01" class="form-control" id="amount" name="amount" placeholder="e.g., 5000.00" required>
+                        <div class="mb-4"> {# Increased bottom margin for input #}
+                            <label for="amount" class="form-label fw-bold">Budget Amount (₹)</label> {# Made label bold #}
+                            <input type="number" step="0.01" class="form-control" id="amount" name="amount" placeholder="e.g., 5000.00" required aria-label="Budget amount in rupees"> {# Added aria-label #}
                         </div>
                         
-                        {# You can add start_date/end_date inputs here if you want to allow users to specify them #}
+                        {# Optional: You can add start_date/end_date inputs here if you want to allow users to specify them #}
                         {# For simplicity, the Python code currently sets start_date to now and end_date to null #}
+                        {#
+                        <div class="mb-3">
+                            <label for="start_date" class="form-label fw-bold">Start Date (Optional)</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" aria-label="Budget start date">
+                        </div>
+                        <div class="mb-4">
+                            <label for="end_date" class="form-label fw-bold">End Date (Optional)</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" aria-label="Budget end date">
+                        </div>
+                        #}
                         
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success">Set Budget</button>
-                            <a href="{{ url_for('budgets.view_budgets') }}" class="btn btn-secondary">View My Budgets</a>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end"> {# Used d-md-flex and justify-content-md-end for button alignment #}
+                            <button type="submit" class="btn btn-primary btn-lg px-4">Set Budget</button> {# Changed button color to primary blue #}
+                            <a href="{{ url_for('budgets.view_budgets') }}" class="btn btn-secondary btn-lg px-4">View My Budgets</a> {# Larger button, more padding #}
                         </div>
                     </form>
                 </div>

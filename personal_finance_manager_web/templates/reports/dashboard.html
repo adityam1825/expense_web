@@ -2,23 +2,203 @@
 
 {% block title %}Dashboard{% endblock %}
 
+{% block head %}
+    {{ super() }}
+    <style>
+        /* General body styling for consistency */
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fa; /* Light grey background */
+            color: #343a40; /* Darker text for readability */
+        }
+
+        /* Container padding adjustments */
+        .container {
+            padding-top: 3rem; /* More space from navbar */
+            padding-bottom: 3rem;
+        }
+
+        /* Welcome section styling */
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeIn 1s ease-out; /* Fade in animation */
+        }
+
+        .welcome-section h2 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #007bff; /* Primary blue for welcome text */
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-section p {
+            font-size: 1.15rem;
+            color: #6c757d;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Dashboard summary and quick actions cards */
+        .dashboard-card {
+            background-color: #ffffff;
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Softer shadow */
+            padding: 2rem;
+            height: 100%; /* Ensure cards in a row have equal height */
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px); /* Lift effect on hover */
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); /* More pronounced shadow on hover */
+        }
+
+        .dashboard-card h3 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #343a40;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e9ecef; /* Subtle separator */
+            padding-bottom: 1rem;
+        }
+
+        /* Summary card specific styles */
+        .summary-item {
+            font-size: 1.2rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between; /* Space out value and label */
+            align-items: center;
+        }
+
+        .summary-item strong {
+            color: #007bff; /* Primary blue for labels */
+        }
+
+        .summary-amount {
+            font-size: 1.4rem;
+            font-weight: 700;
+            font-family: 'SF Mono', 'Roboto Mono', monospace; /* Monospaced for amounts */
+        }
+
+        .income-amount {
+            color: #28a745; /* Green for income */
+        }
+
+        .expense-amount {
+            color: #dc3545; /* Red for expenses */
+        }
+
+        .net-savings-amount {
+            color: #17a2b8; /* Info blue for net savings */
+        }
+
+        /* Quick actions card specific styles */
+        .quick-actions ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .quick-actions li {
+            margin-bottom: 1rem;
+        }
+
+        .quick-actions a.btn {
+            width: 100%;
+            padding: 0.75rem 1.25rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-add-expense {
+            background-color: #fd7e14; /* Orange for expense */
+            border-color: #fd7e14;
+            color: white;
+        }
+        .btn-add-expense:hover {
+            background-color: #e66a00;
+            border-color: #cc5d00;
+        }
+
+        .btn-add-income {
+            background-color: #28a745; /* Green for income */
+            border-color: #28a745;
+            color: white;
+        }
+        .btn-add-income:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+
+        .btn-manage-categories {
+            background-color: #6c757d; /* Secondary grey */
+            border-color: #6c757d;
+            color: white;
+        }
+        .btn-manage-categories:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+
+        /* Animation for fade-in */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
-    <h2>Welcome, {{ user.username }}!</h2>
-    <p>This is your personal finance dashboard. You can add expenses, income, view reports, and manage categories here.</p>
-
-    <div class="dashboard-summary">
-        <h3>Quick Overview</h3>
-        <p>Total Income: $0.00</p>
-        <p>Total Expenses: $0.00</p>
-        <p>Net Savings: $0.00</p>
+<div class="container">
+    <div class="welcome-section">
+        <h2>Welcome, {{ user.username }}!</h2>
+        <p>This is your personal finance dashboard. Quickly view your financial snapshot and access essential tools to manage your expenses, income, and categories.</p>
     </div>
 
-    <div class="quick-actions">
-        <h3>Quick Actions</h3>
-        <ul>
-            <li><a href="#">Record New Expense</a></li> {# Placeholder #}
-            <li><a href="#">Record New Income</a></li> {# Placeholder #}
-            <li><a href="#">Manage Categories</a></li> {# Placeholder #}
-        </ul>
+    <div class="row g-4"> {# Use g-4 for consistent gutter spacing #}
+        <div class="col-lg-6 col-md-12">
+            <div class="dashboard-card shadow-sm">
+                <h3>Quick Overview</h3>
+                <div>
+                    <div class="summary-item">
+                        <span><strong>Total Income:</strong></span>
+                        <span class="summary-amount income-amount">₹{{ "%.2f"|format(total_income | float) }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span><strong>Total Expenses:</strong></span>
+                        <span class="summary-amount expense-amount">₹{{ "%.2f"|format(total_expenses | float) }}</span>
+                    </div>
+                    <hr> {# Separator for net savings #}
+                    <div class="summary-item">
+                        <span><strong>Net Savings:</strong></span>
+                        <span class="summary-amount net-savings-amount">₹{{ "%.2f"|format(net_savings | float) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 col-md-12">
+            <div class="dashboard-card shadow-sm">
+                <h3>Quick Actions</h3>
+                <div class="quick-actions">
+                    <ul>
+                        <li><a href="{{ url_for('expenses.add_expense') }}" class="btn btn-add-expense">Record New Expense</a></li>
+                        <li><a href="{{ url_for('income.add_income') }}" class="btn btn-add-income">Record New Income</a></li>
+                        <li><a href="{{ url_for('categories.view_categories') }}" class="btn btn-manage-categories">Manage Categories</a></li>
+                        {# You can add more quick action links here, e.g., view budgets, view reports #}
+                        <li><a href="{{ url_for('budgets.view_budgets') }}" class="btn btn-outline-primary">View Budgets</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 {% endblock %}

@@ -2,15 +2,107 @@
 
 {% block title %}Add Category{% endblock %}
 
+{% block head %}
+    {{ super() }} {# This line is important to include anything from base.html's head block #}
+    <style>
+        /* General Body Styling (if not already in base.html or a linked external CSS) */
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; /* Modern font stack */
+            background-color: #f8f9fa; /* Lighter background for the entire app */
+        }
+
+        /* Card container adjustments for consistency */
+        .card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: none; /* Remove default card border */
+            border-radius: 0.75rem; /* Slightly more rounded corners */
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); /* Slightly larger shadow on hover */
+        }
+
+        /* Card header styling */
+        .card-header {
+            background-color: #28a745; /* Success green for this header */
+            color: white;
+            text-align: center;
+            padding: 1.25rem; /* Increased padding */
+            border-bottom: none !important; /* Remove default card-header border */
+            border-top-left-radius: 0.75rem !important; /* Match card border-radius */
+            border-top-right-radius: 0.75rem !important; /* Match card border-radius */
+        }
+
+        .card-header h2 {
+            font-size: 2rem; /* Larger heading */
+            font-weight: 600; /* Bolder heading */
+            margin-bottom: 0;
+        }
+
+        /* Card body padding */
+        .card-body {
+            padding: 2rem; /* Increased padding */
+        }
+
+        /* Form element styling */
+        .form-label {
+            font-weight: 600; /* Bolder labels */
+            color: #343a40; /* Darker grey for labels */
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: .4rem; /* Slightly more rounded inputs/selects */
+            padding: 0.75rem 1rem; /* More padding inside inputs */
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 .25rem rgba(0, 123, 255, .25);
+            outline: none; /* Remove default outline */
+        }
+
+        /* Button enhancements */
+        .btn-lg {
+            font-weight: 600; /* Make large buttons bolder */
+            padding: 0.75rem 1.5rem; /* Larger padding for main action button */
+            font-size: 1.1rem;
+            border-radius: 0.5rem; /* More rounded button */
+        }
+
+        .btn-success {
+            background-color: #28a745; /* Standard Bootstrap success green */
+            border-color: #28a745;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d; /* Standard grey */
+            border-color: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-5 mb-5"> {# Increased top margin, added bottom margin for consistent spacing #}
     <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-success text-white">
+        <div class="col-lg-6 col-md-8"> {# Adjusted column width for wider card on larger screens, narrower overall for a focused form #}
+            <div class="card shadow-lg border-0"> {# More pronounced shadow, removed default border #}
+                <div class="card-header"> {# bg-success removed, now uses custom green defined in style #}
                     <h2 class="mb-0">Add New Category</h2>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4"> {# Increased padding for card body #}
                     {% with messages = get_flashed_messages(with_categories=true) %}
                         {% if messages %}
                             {% for category, message in messages %}
@@ -24,20 +116,20 @@
 
                     <form method="POST" action="{{ url_for('categories.add_category') }}">
                         <div class="mb-3">
-                            <label for="name" class="form-label">Category Name</label>
-                            <input type="text" class="form-control" id="name" name="name" required placeholder="e.g., Groceries, Salary, Rent">
+                            <label for="name" class="form-label fw-bold">Category Name</label> {# Made label bold #}
+                            <input type="text" class="form-control" id="name" name="name" required placeholder="e.g., Groceries, Salary, Rent" aria-label="Category Name"> {# Added aria-label #}
                         </div>
-                        <div class="mb-3">
-                            <label for="type" class="form-label">Category Type</label>
-                            <select class="form-control" id="type" name="type" required>
-                                <option value="">Select Type</option>
+                        <div class="mb-4"> {# Increased bottom margin for input #}
+                            <label for="type" class="form-label fw-bold">Category Type</label> {# Made label bold #}
+                            <select class="form-select" id="type" name="type" required aria-label="Category Type (Expense or Income)"> {# Changed from form-control to form-select, added aria-label #}
+                                <option value="">Select Type</option> {# Added a placeholder option #}
                                 <option value="expense">Expense</option>
                                 <option value="income">Income</option>
                             </select>
                         </div>
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success">Add Category</button>
-                            <a href="{{ url_for('categories.view_categories') }}" class="btn btn-secondary">View All Categories</a>
+                            <button type="submit" class="btn btn-success btn-lg">Add Category</button> {# Larger button #}
+                            <a href="{{ url_for('categories.view_categories') }}" class="btn btn-secondary btn-lg">View All Categories</a> {# Larger button #}
                         </div>
                     </form>
                 </div>
