@@ -186,9 +186,9 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>Category</th>
-                                    <th>Budget Amount (₹)</th>
-                                    <th>Spent (₹)</th>
-                                    <th>Remaining (₹)</th>
+                                    <th>Budget Amount (â‚¹)</th>
+                                    <th>Spent (â‚¹)</th>
+                                    <th>Remaining (â‚¹)</th>
                                     <th>Start Date</th>
                                     <th>Actions</th>
                                 </tr>
@@ -197,16 +197,16 @@
                                 {% for budget in budgets %}
                                 <tr>
                                     <td class="fw-bold">{{ budget.category }}</td> {# Make category bold #}
-                                    <td>₹{{ "%.2f"|format(budget.amount | float) }}</td>
-                                    <td>₹{{ "%.2f"|format(budget.spent | float) }}</td>
+                                    <td>â‚¹{{ "%.2f"|format(budget.amount | float) }}</td>
+                                    <td>â‚¹{{ "%.2f"|format(budget.spent | float) }}</td>
                                     <td class="{{ 'text-danger' if budget.remaining < 0 else 'text-success' }}">
-                                        ₹{{ "%.2f"|format(budget.remaining | float) }}
+                                        â‚¹{{ "%.2f"|format(budget.remaining | float) }}
                                     </td>
                                     <td>{{ budget.start_date.strftime('%Y-%m-%d') }}</td>
                                     <td>
                                         <div class="d-flex flex-nowrap"> {# Use flex to keep buttons together #}
-                                            <a href="{{ url_for('budgets.edit_budget', budget_id=budget.id) }}" class="btn btn-sm btn-outline-primary me-2" aria-label="Edit budget for {{ budget.category }}">Edit</a> {# Added aria-label #}
-                                            <form action="{{ url_for('budgets.delete_budget', budget_id=budget.id) }}" method="POST" style="display:inline;">
+                                            <a href="{{ url_for('edit_budget', budget_id=budget.id) }}" class="btn btn-sm btn-outline-primary me-2" aria-label="Edit budget for {{ budget.category }}">Edit</a> {# CORRECTED #}
+                                            <form action="{{ url_for('delete_budget', budget_id=budget.id) }}" method="POST" style="display:inline;"> {# CORRECTED #}
                                                 <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete the budget for {{ budget.category }}?');" aria-label="Delete budget for {{ budget.category }}">Delete</button> {# Added specific confirmation text and aria-label #}
                                             </form>
                                         </div>
@@ -220,7 +220,7 @@
                     <p class="text-center">You haven't set any budgets yet. Click the button below to get started!</p>
                     {% endif %}
                     <div class="d-grid mt-4">
-                        <a href="{{ url_for('budgets.set_budget') }}" class="btn btn-primary btn-lg">Set New Budget</a>
+                        <a href="{{ url_for('add_budget') }}" class="btn btn-primary btn-lg">Set New Budget</a> {# CORRECTED #}
                     </div>
                 </div>
             </div>

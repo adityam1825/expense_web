@@ -173,16 +173,16 @@
                     {#
                     <div class="summary-item">
                         <span><strong>Total Income:</strong></span>
-                        <span class="summary-amount income-amount">₹{{ "%.2f"|format(total_income | float) }}</span>
+                        <span class="summary-amount income-amount">â‚¹{{ "%.2f"|format(total_income | float) }}</span>
                     </div>
                     <div class="summary-item">
                         <span><strong>Total Expenses:</strong></span>
-                        <span class="summary-amount expense-amount">₹{{ "%.2f"|format(total_expenses | float) }}</span>
+                        <span class="summary-amount expense-amount">â‚¹{{ "%.2f"|format(total_expenses | float) }}</span>
                     </div>
                     <hr>
                     <div class="summary-item">
                         <span><strong>Net Savings:</strong></span>
-                        <span class="summary-amount net-savings-amount">₹{{ "%.2f"|format(net_savings | float) }}</span>
+                        <span class="summary-amount net-savings-amount">â‚¹{{ "%.2f"|format(net_savings | float) }}</span>
                     </div>
                     #}
                     <p>Financial overview data will appear here once your transactions and reports features are ready!</p>
@@ -195,11 +195,11 @@
                 <h3>Quick Actions</h3>
                 <div class="quick-actions">
                     <ul>
-                        <li><a href="{{ url_for('expenses.add_expense') }}" class="btn btn-add-expense">Record New Expense</a></li>
-                        <li><a href="{{ url_for('income.add_income') }}" class="btn btn-add-income">Record New Income</a></li>
-                        <li><a href="{{ url_for('categories.view_categories') }}" class="btn btn-manage-categories">Manage Categories</a></li>
+                        <li><a href="{{ url_for('add_transaction', transaction_type='expense') }}" class="btn btn-add-expense">Record New Expense</a></li> {# CORRECTED #}
+                        <li><a href="{{ url_for('add_transaction', transaction_type='income') }}" class="btn btn-add-income">Record New Income</a></li> {# CORRECTED #}
+                        <li><a href="{{ url_for('list_categories') }}" class="btn btn-manage-categories">Manage Categories</a></li> {# CORRECTED #}
                         {# You can add more quick action links here, e.g., view budgets, view reports #}
-                        <li><a href="{{ url_for('budgets.view_budgets') }}" class="btn btn-outline-primary">View Budgets</a></li>
+                        <li><a href="{{ url_for('list_budgets') }}" class="btn btn-outline-primary">View Budgets</a></li> {# CORRECTED #}
                     </ul>
                 </div>
             </div>

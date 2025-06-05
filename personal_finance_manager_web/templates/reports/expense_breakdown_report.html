@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Expense Breakdown Report{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5 fade-in-section">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-10">
+            <div class="card shadow-lg">
+                <div class="card-header text-center">
+                    <h2>Expense Breakdown Report</h2>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="GET" action="{{ url_for('generate_reports') }}" class="mb-4 p-3 bg-light rounded-3 shadow-sm"> {# CORRECTED #}
+                        <input type="hidden" name="type" value="expense_breakdown">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label for="month" class="form-label">Month</label>
+                                <select class="form-select" id="month" name="month">
+                                    {% for i in range(1, 13) %}
+                                        <option value="{{ i }}" {% if selected_month == i %}selected{% endif %}>{{ '{:02d}'.format(i) }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="year" class="form-label">Year</label>
+                                <select class="form-select" id="year" name="year">
+                                    {% for y in range(current_year - 5, current_year + 1) %}
+                                        <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="expense_category_id" class="form-label">Specific Category (Optional)</label>
+                                <select class="form-select" id="expense_category_id" name="expense_category_id">
+                                    <option value="">All Expense Categories</option>
+                                    {% for cat in all_expense_categories %}
+                                        <option value="{{ cat.id }}" {% if selected_expense_category_id == cat.id %}selected{% endif %}>
+                                            {{ cat.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-12 text-end">
+                                <button type="submit" class="btn btn-primary">Filter Report</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <h4 class="mb-3">Total Expenses for Period: <span class="text-danger">â‚¹{{ "%.2f"|format(total_breakdown_expense | float) }}</span></h4>
+
+                    {% if expense_breakdown_data %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped caption-top">
+                            <caption class="text-start mb-2">Breakdown of expenses by category for the selected period.</caption>
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Expense Category</th>
+                                    <th class="text-end">Total Spent (â‚¹)</th>
+                                    <th class="text-end">Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in expense_breakdown_data %}
+                                <tr>
+                                    <td class="fw-bold">{{ item.name }}</td>
+                                    <td class="text-end text-danger">â‚¹{{ "%.2f"|format(item.total_spent | float) }}</td>
+                                    <td class="text-end">
+                                        {% if total_breakdown_expense > 0 %}
+                                            {{ "%.2f"|format((item.total_spent / total_breakdown_expense * 100) | float) }}%
+                                        {% else %}
+                                            0.00%
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center mt-4">No expense data found for the selected criteria. Please adjust your filters.</p>
+                    {% endif %}
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{{ url_for('generate_reports', type='monthly_summary') }}" class="btn btn-outline-info btn-lg">View Monthly Summary</a> {# CORRECTED #}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

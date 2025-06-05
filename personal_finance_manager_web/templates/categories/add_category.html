@@ -114,7 +114,7 @@
                         {% endif %}
                     {% endwith %}
 
-                    <form method="POST" action="{{ url_for('categories.add_category') }}">
+                    <form method="POST" action="{{ url_for('add_category') }}"> {# CORRECTED #}
                         <div class="mb-3">
                             <label for="name" class="form-label fw-bold">Category Name</label> {# Made label bold #}
                             <input type="text" class="form-control" id="name" name="name" required placeholder="e.g., Groceries, Salary, Rent" aria-label="Category Name"> {# Added aria-label #}
@@ -129,7 +129,7 @@
                         </div>
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-success btn-lg">Add Category</button> {# Larger button #}
-                            <a href="{{ url_for('categories.view_categories') }}" class="btn btn-secondary btn-lg">View All Categories</a> {# Larger button #}
+                            <a href="{{ url_for('list_categories') }}" class="btn btn-secondary btn-lg">View All Categories</a> {# CORRECTED #}
                         </div>
                     </form>
                 </div>
