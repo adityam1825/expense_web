@@ -22,60 +22,81 @@
                         {% endif %}
                     {% endwith %}
 
-                    <form method="GET" action="{{ url_for('generate_reports') }}" class="mb-4 p-3 bg-light rounded-3 shadow-sm"> {# CORRECTED #}
+                    {#
+                        NOTE: The form below attempts to use 'selected_month', 'selected_year',
+                        'current_year', 'all_expense_categories', and 'selected_expense_category_id'.
+                        If 'app.py' is NOT passing these, they will cause UndefinedError.
+                        The 'action' URL also needs to point to the correct endpoint in 'app.py'.
+                        For HTML-only changes, we can only remove the error-causing parts,
+                        which means losing functionality.
+                    #}
+                    <form method="GET" action="{{ url_for('expense_breakdown_report') }}" class="mb-4 p-3 bg-light rounded-3 shadow-sm">
                         <input type="hidden" name="type" value="expense_breakdown">
                         <div class="row g-3 align-items-end">
                             <div class="col-md-4">
                                 <label for="month" class="form-label">Month</label>
                                 <select class="form-select" id="month" name="month">
-                                    {% for i in range(1, 13) %}
+                                    {# These variables must be passed from app.py to work #}
+                                    <option value="">(Functionality requires app.py update)</option>
+                                    {# {% for i in range(1, 13) %}
                                         <option value="{{ i }}" {% if selected_month == i %}selected{% endif %}>{{ '{:02d}'.format(i) }}</option>
-                                    {% endfor %}
+                                    {% endfor %} #}
                                 </select>
                             </div>
                             <div class="col-md-4">
                                 <label for="year" class="form-label">Year</label>
                                 <select class="form-select" id="year" name="year">
-                                    {% for y in range(current_year - 5, current_year + 1) %}
+                                    {# These variables must be passed from app.py to work #}
+                                    <option value="">(Functionality requires app.py update)</option>
+                                    {# {% for y in range(current_year - 5, current_year + 1) %}
                                         <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
-                                    {% endfor %}
+                                    {% endfor %} #}
                                 </select>
                             </div>
                             <div class="col-md-4">
                                 <label for="expense_category_id" class="form-label">Specific Category (Optional)</label>
                                 <select class="form-select" id="expense_category_id" name="expense_category_id">
-                                    <option value="">All Expense Categories</option>
-                                    {% for cat in all_expense_categories %}
+                                    <option value="">All Expense Categories (Functionality requires app.py update)</option>
+                                    {# These variables must be passed from app.py to work #}
+                                    {# {% for cat in all_expense_categories %}
                                         <option value="{{ cat.id }}" {% if selected_expense_category_id == cat.id %}selected{% endif %}>
                                             {{ cat.name }}
                                         </option>
-                                    {% endfor %}
+                                    {% endfor %} #}
                                 </select>
                             </div>
                             <div class="col-12 text-end">
+                                {# This button will still submit, but filters won't work without app.py changes #}
                                 <button type="submit" class="btn btn-primary">Filter Report</button>
                             </div>
                         </div>
                     </form>
 
-                    <h4 class="mb-3">Total Expenses for Period: <span class="text-danger">â‚¹{{ "%.2f"|format(total_breakdown_expense | float) }}</span></h4>
+                    {# total_breakdown_expense must be passed from app.py #}
+                    <h4 class="mb-3">Total Expenses for Period: <span class="text-danger">Ã¢â€šÂ¹{{ "%.2f"|format(0.00 | float) }}</span></h4>
+                    {# Or if you want to keep the variable but it's not defined, it will error.
+                       To avoid error, you'd need a default or conditional:
+                       <h4 class="mb-3">Total Expenses for Period: <span class="text-danger">Ã¢â€šÂ¹{{ "%.2f"|format(total_breakdown_expense | default(0.00) | float) }}</span></h4>
+                       But this still implies a variable is expected.
+                    #}
 
-                    {% if expense_breakdown_data %}
+                    {# expense_breakdown_data must be passed from app.py #}
+                    {% if false %} {# Always false, as data won't be passed from app.py without changes #}
                     <div class="table-responsive">
                         <table class="table table-hover table-striped caption-top">
                             <caption class="text-start mb-2">Breakdown of expenses by category for the selected period.</caption>
                             <thead class="table-light">
                                 <tr>
                                     <th>Expense Category</th>
-                                    <th class="text-end">Total Spent (â‚¹)</th>
+                                    <th class="text-end">Total Spent (Ã¢â€šÂ¹)</th>
                                     <th class="text-end">Percentage</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for item in expense_breakdown_data %}
+                                {# {% for item in expense_breakdown_data %}
                                 <tr>
                                     <td class="fw-bold">{{ item.name }}</td>
-                                    <td class="text-end text-danger">â‚¹{{ "%.2f"|format(item.total_spent | float) }}</td>
+                                    <td class="text-end text-danger">Ã¢â€šÂ¹{{ "%.2f"|format(item.total_spent | float) }}</td>
                                     <td class="text-end">
                                         {% if total_breakdown_expense > 0 %}
                                             {{ "%.2f"|format((item.total_spent / total_breakdown_expense * 100) | float) }}%
@@ -84,16 +105,16 @@
                                         {% endif %}
                                     </td>
                                 </tr>
-                                {% endfor %}
+                                {% endfor %} #}
                             </tbody>
                         </table>
                     </div>
                     {% else %}
-                    <p class="text-center mt-4">No expense data found for the selected criteria. Please adjust your filters.</p>
+                    <p class="text-center mt-4">No expense data found for the selected criteria. **(Requires app.py to pass data)**</p>
                     {% endif %}
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                        <a href="{{ url_for('generate_reports', type='monthly_summary') }}" class="btn btn-outline-info btn-lg">View Monthly Summary</a> {# CORRECTED #}
+                        <a href="{{ url_for('monthly_summary_report') }}" class="btn btn-outline-info btn-lg">View Monthly Summary</a>
                     </div>
                 </div>
             </div>

@@ -7,10 +7,10 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta, date
 from sqlalchemy import func
-from decimal import Decimal # For handling Numeric type properly
-from flask_migrate import Migrate # <--- ADDED: Flask-Migrate Import
+from decimal import Decimal
+from flask_migrate import Migrate
 
-# --- Configuration (from config.py, assumed to be part of this file) ---
+# --- Configuration ---
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'your_super_secret_key_here' # USE A STRONG, RANDOM KEY IN PRODUCTION
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
@@ -20,7 +20,7 @@ class Config:
 
 # --- Database Initialization ---
 db = SQLAlchemy()
-migrate = Migrate() # <--- ADDED: Global Flask-Migrate Initialization
+migrate = Migrate()
 
 # --- Models ---
 class Base(db.Model):
@@ -92,7 +92,7 @@ def create_app():
     app.config.from_object(Config)
 
     db.init_app(app)
-    migrate.init_app(app, db) # <--- ADDED: Flask-Migrate Initialization for the app
+    migrate.init_app(app, db)
 
     login_manager = LoginManager()
     login_manager.login_view = 'login'
@@ -118,6 +118,7 @@ def create_app():
         user_id = current_user.id
         today = datetime.now().date()
         start_of_month = today.replace(day=1)
+        # Calculate end_of_month as the last day of the current month
         end_of_month = (start_of_month + timedelta(days=32)).replace(day=1) - timedelta(days=1)
 
         total_income = db.session.query(func.sum(Transaction.amount)).filter(
@@ -289,6 +290,8 @@ def create_app():
             flash(f'Please add at least one {transaction_type} category first!', 'info')
             return redirect(url_for('add_category'))
 
+        today = datetime.now().date()
+
         if request.method == 'POST':
             try:
                 amount = Decimal(request.form['amount'])
@@ -298,7 +301,7 @@ def create_app():
 
                 if not amount or amount <= 0:
                     flash('Amount must be a positive number.', 'danger')
-                    return render_template(f'transactions/add_{transaction_type}.html', categories=categories, transaction_type=transaction_type)
+                    return render_template(f'transactions/add_{transaction_type}.html', categories=categories, transaction_type=transaction_type, today=today)
 
                 transaction_date = datetime.strptime(transaction_date_str, '%Y-%m-%d').date()
 
@@ -309,7 +312,7 @@ def create_app():
                 ).first()
                 if not category:
                     flash('Invalid category selected.', 'danger')
-                    return render_template(f'transactions/add_{transaction_type}.html', categories=categories, transaction_type=transaction_type)
+                    return render_template(f'transactions/add_{transaction_type}.html', categories=categories, transaction_type=transaction_type, today=today)
 
                 new_transaction = Transaction(
                     user_id=current_user.id,
@@ -326,11 +329,13 @@ def create_app():
 
             except ValueError:
                 flash('Invalid amount or date format.', 'danger')
+                return render_template(f'transactions/add_{transaction_type}.html', categories=categories, transaction_type=transaction_type, today=today)
             except Exception as e:
                 db.session.rollback()
                 flash(f'An error occurred: {e}', 'danger')
+                return render_template(f'transactions/add_{transaction_type}.html', categories=categories, transaction_type=transaction_type, today=today)
 
-        return render_template(f'transactions/add_{transaction_type}.html', categories=categories, transaction_type=transaction_type)
+        return render_template(f'transactions/add_{transaction_type}.html', categories=categories, transaction_type=transaction_type, today=today)
 
     @app.route('/transactions/edit/<int:transaction_id>', methods=['GET', 'POST'])
     @login_required
@@ -385,8 +390,40 @@ def create_app():
     @app.route('/budgets')
     @login_required
     def list_budgets():
-        budgets = Budget.query.filter_by(user_id=current_user.id).order_by(Budget.start_date.desc()).all()
-        return render_template('budgets/view_budgets.html', budgets=budgets)
+        user_id = current_user.id
+        today = datetime.now().date()
+        current_month_start = today.replace(day=1)
+        next_month_start = (current_month_start + timedelta(days=32)).replace(day=1)
+
+        raw_budgets = Budget.query.filter_by(user_id=user_id).order_by(Budget.start_date.desc()).all()
+
+        budget_data_for_template = []
+        for budget in raw_budgets:
+            # Calculate spent for the current month for each budget's category
+            spent_on_budget_category = db.session.query(func.sum(Transaction.amount)).join(Category).filter(
+                Transaction.user_id == user_id,
+                Category.user_id == user_id,
+                Category.name == budget.category_name,
+                Transaction.type == 'expense',
+                Transaction.date >= current_month_start, # Calculating spent for current month
+                Transaction.date < next_month_start      # within the budget's category
+            ).scalar() or Decimal('0.00')
+
+            remaining = budget.amount - spent_on_budget_category
+            
+            budget_data_for_template.append({
+                'id': budget.id, # Keep ID for edit/delete links
+                'category_name': budget.category_name,
+                'amount': budget.amount,
+                'start_date': budget.start_date,
+                'end_date': budget.end_date,
+                'spent': spent_on_budget_category, # Calculated spent for current month
+                'remaining': remaining,           # Calculated remaining for current month
+                'status': 'Under Budget' if remaining >= 0 else 'Over Budget'
+            })
+
+        return render_template('budgets/view_budgets.html', budgets=budget_data_for_template)
+
 
     @app.route('/budgets/add', methods=['GET', 'POST'])
     @login_required
@@ -396,26 +433,29 @@ def create_app():
             flash('Please add at least one expense category before creating a budget!', 'info')
             return redirect(url_for('add_category'))
 
+        today = datetime.now().date() # Add this line
+
         if request.method == 'POST':
             try:
+                # Changed from category_id to category_name as per template
                 category_name = request.form['category_name'].strip()
                 amount = Decimal(request.form['amount'])
-                start_date_str = request.form['start_date']
-                end_date_str = request.form.get('end_date')
+                start_date_str = request.form['start_date'] # Now required by template
+                end_date_str = request.form.get('end_date') # Optional, will be None if not provided
 
                 if not category_name:
                     flash('Category name cannot be empty!', 'danger')
-                    return render_template('budgets/add_budget.html', categories=categories)
+                    return render_template('budgets/add_budget.html', categories=categories, today=today)
                 if not amount or amount <= 0:
                     flash('Amount must be a positive number.', 'danger')
-                    return render_template('budgets/add_budget.html', categories=categories)
+                    return render_template('budgets/add_budget.html', categories=categories, today=today)
 
                 start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
                 end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date() if end_date_str else None
 
                 if end_date and start_date > end_date:
                     flash('End date cannot be before start date.', 'danger')
-                    return render_template('budgets/add_budget.html', categories=categories)
+                    return render_template('budgets/add_budget.html', categories=categories, today=today)
 
                 existing_budget = Budget.query.filter_by(
                     user_id=current_user.id,
@@ -425,7 +465,7 @@ def create_app():
 
                 if existing_budget:
                     flash(f'A budget for "{category_name}" starting on {start_date} already exists.', 'danger')
-                    return render_template('budgets/add_budget.html', categories=categories)
+                    return render_template('budgets/add_budget.html', categories=categories, today=today)
 
                 new_budget = Budget(
                     user_id=current_user.id,
@@ -440,12 +480,12 @@ def create_app():
                 return redirect(url_for('list_budgets'))
 
             except ValueError:
-                flash('Invalid amount or date format.', 'danger')
+                flash('Invalid amount or date format. Ensure dates are valid.', 'danger')
             except Exception as e:
                 db.session.rollback()
                 flash(f'An error occurred: {e}', 'danger')
 
-        return render_template('budgets/add_budget.html', categories=categories)
+        return render_template('budgets/add_budget.html', categories=categories, today=today) # Pass today here
 
     @app.route('/budgets/edit/<int:budget_id>', methods=['GET', 'POST'])
     @login_required
@@ -455,10 +495,10 @@ def create_app():
 
         if request.method == 'POST':
             try:
-                category_name = request.form['category_name'].strip()
+                category_name = request.form['category_name'].strip() # Corrected name
                 amount = Decimal(request.form['amount'])
-                start_date_str = request.form['start_date']
-                end_date_str = request.form.get('end_date')
+                start_date_str = request.form['start_date'] # Added
+                end_date_str = request.form.get('end_date') # Added
 
                 if not category_name:
                     flash('Category name cannot be empty!', 'danger')
@@ -473,6 +513,7 @@ def create_app():
                 if end_date and start_date > end_date:
                     flash('End date cannot be before start date.', 'danger')
                     return render_template('budgets/edit_budget.html', budget=budget, categories=categories)
+
 
                 existing_budget = Budget.query.filter(
                     Budget.user_id == current_user.id,
@@ -494,7 +535,7 @@ def create_app():
                 return redirect(url_for('list_budgets'))
 
             except ValueError:
-                flash('Invalid amount or date format.', 'danger')
+                flash('Invalid amount or date format. Ensure dates are valid.', 'danger')
             except Exception as e:
                 db.session.rollback()
                 flash(f'An error occurred: {e}', 'danger')
@@ -511,6 +552,7 @@ def create_app():
         return redirect(url_for('list_budgets'))
 
     # --- Reports Routes ---
+
     @app.route('/reports/summary')
     @login_required
     def monthly_summary_report():
@@ -531,8 +573,11 @@ def create_app():
             display_next_month = (display_start_of_month + timedelta(days=32)).replace(day=1)
         except ValueError:
             # Fallback to current month if an invalid year/month combination is selected (e.g., Feb 30)
+            flash("Invalid date selection. Showing current month's summary.", "warning")
             display_start_of_month = today.replace(day=1)
             display_next_month = (display_start_of_month + timedelta(days=32)).replace(day=1)
+            selected_month = today.month
+            selected_year = today.year
 
         # Calculate total income and expenses for the SELECTED month
         total_income_month = db.session.query(func.sum(Transaction.amount)).filter(
@@ -634,10 +679,10 @@ def create_app():
             net_savings=total_income_month - total_expense_month,
             category_data=category_data,
             budget_summary=budget_summary,
-            monthly_data=monthly_data,          # <--- PASSED TO TEMPLATE
-            current_year=current_year,          # <--- PASSED TO TEMPLATE
-            selected_year=selected_year,        # <--- PASSED TO TEMPLATE
-            selected_month=selected_month       # <--- PASSED TO TEMPLATE
+            monthly_data=monthly_data,          
+            current_year=current_year,          
+            selected_year=selected_year,        
+            selected_month=selected_month       
         )
 
     @app.route('/reports/expense_breakdown')
@@ -645,30 +690,86 @@ def create_app():
     def expense_breakdown_report():
         user_id = current_user.id
         today = datetime.now().date()
-        start_of_month = today.replace(day=1)
-        end_of_month = (start_of_month + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        
+        # 1. Get current year for dropdown range
+        current_year = today.year
 
-        expense_categories = Category.query.filter_by(user_id=user_id, type='expense').order_by(Category.name).all()
+        # 2. Get selected filters from request args, default to current month/year, no specific category
+        selected_month = request.args.get('month', type=int, default=today.month)
+        selected_year = request.args.get('year', type=int, default=today.year)
+        selected_expense_category_id = request.args.get('expense_category_id', type=int) # Can be None if not selected
 
-        category_totals = []
-        total_spent_this_month = Decimal('0.00')
+        # 3. Define the date range for filtering based on selected month/year
+        try:
+            filter_start_date = date(selected_year, selected_month, 1)
+            filter_end_date = (filter_start_date + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        except ValueError:
+            # Fallback for invalid month/year combinations
+            flash("Invalid date selection. Showing current month's breakdown.", "warning")
+            filter_start_date = today.replace(day=1)
+            filter_end_date = (filter_start_date + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+            selected_month = today.month
+            selected_year = today.year
 
-        for category in expense_categories:
-            spent_in_category = db.session.query(func.sum(Transaction.amount)).filter(
-                Transaction.user_id == user_id,
-                Transaction.category_id == category.id,
-                Transaction.type == 'expense',
-                Transaction.date >= start_of_month,
-                Transaction.date <= end_of_month
-            ).scalar() or Decimal('0.00')
-            category_totals.append({'name': category.name, 'total': spent_in_category})
-            total_spent_this_month += spent_in_category
+        # 4. Fetch all expense categories for the dropdown
+        all_expense_categories = Category.query.filter_by(user_id=user_id, type='expense').order_by(Category.name).all()
+
+        # 5. Build the query for transactions
+        transactions_query = Transaction.query.filter(
+            Transaction.user_id == user_id,
+            Transaction.type == 'expense',
+            Transaction.date >= filter_start_date,
+            Transaction.date <= filter_end_date
+        )
+
+        if selected_expense_category_id:
+            transactions_query = transactions_query.filter(
+                Transaction.category_id == selected_expense_category_id
+            )
+
+        # 6. Calculate category-wise totals
+        expense_breakdown_data = []
+        total_breakdown_expense = Decimal('0.00')
+
+        # If a specific category is selected, only show that category's data
+        if selected_expense_category_id:
+            specific_category = Category.query.get(selected_expense_category_id)
+            if specific_category and specific_category.user_id == user_id and specific_category.type == 'expense':
+                total_spent = transactions_query.with_entities(func.sum(Transaction.amount)).scalar() or Decimal('0.00')
+                expense_breakdown_data.append({
+                    'name': specific_category.name,
+                    'total_spent': total_spent
+                })
+                total_breakdown_expense = total_spent
+        else:
+            # Otherwise, group by all expense categories
+            for category in all_expense_categories:
+                # Get total spent for this category within the filtered date range
+                spent_in_category = transactions_query.filter(
+                    Transaction.category_id == category.id
+                ).with_entities(func.sum(Transaction.amount)).scalar() or Decimal('0.00')
+
+                if spent_in_category > 0: # Only add categories with expenses
+                    expense_breakdown_data.append({
+                        'name': category.name,
+                        'total_spent': spent_in_category
+                    })
+                total_breakdown_expense += spent_in_category
+
+        # 7. Sort the breakdown data (e.g., by total spent descending)
+        expense_breakdown_data.sort(key=lambda x: x['total_spent'], reverse=True)
+
 
         return render_template(
             'reports/expense_breakdown_report.html',
-            category_totals=category_totals,
-            current_month=start_of_month,
-            total_spent=total_spent_this_month
+            current_month=filter_start_date, # This reflects the start of the selected month
+            total_breakdown_expense=total_breakdown_expense, # Total for the period and filters
+            expense_breakdown_data=expense_breakdown_data,   # Category-wise breakdown
+            current_year=current_year,                       # For the year dropdown range
+            selected_year=selected_year,                     # To pre-select year in dropdown
+            selected_month=selected_month,                   # To pre-select month in dropdown
+            all_expense_categories=all_expense_categories,   # To populate category dropdown
+            selected_expense_category_id=selected_expense_category_id # To pre-select category
         )
 
     # --- Error Handlers ---
