@@ -4,61 +4,119 @@
 
 {% block head %}
     {{ super() }} {# This line is important to include anything from base.html's head block #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        /* General Body Styling (if not already in base.html or a linked external CSS) */
-        body {
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; /* Modern font stack */
-            background-color: #f8f9fa; /* Lighter background for the entire app */
+        /* CSS Variables are assumed to be defined in base.html */
+        /* If they are not, uncomment and place them here:
+        :root {
+            --background-color: #1a1a2e;
+            --card-background: #16213e;
+            --text-color: #e0e0e0;
+            --heading-color: #e0e0e0;
+            --accent-color: #0f3460;
+            --primary-button-bg: #e94560;
+            --primary-button-hover-bg: #c93550;
+            --secondary-button-bg: #533483;
+            --secondary-button-hover-bg: #432a6a;
+            --border-color: #0f3460;
+            --shadow-color: rgba(0, 0, 0, 0.4);
+            --form-element-bg: #0e162f;
+            --form-border: #0f3460;
+            --form-focus-border: #e94560;
+
+            --flash-success-bg: #28a745;
+            --flash-success-color: #ffffff;
+            --flash-error-bg: #dc3545;
+            --flash-error-color: #ffffff;
+            --flash-info-bg: #007bff;
+            --flash-info-color: #ffffff;
+            --flash-warning-bg: #ffc107;
+            --flash-warning-color: #343a40;
+        }
+        */
+
+        /* Main container padding */
+        .container.mt-5.mb-5 {
+            padding-top: 50px;
+            padding-bottom: 50px;
         }
 
         /* Card container adjustments for consistency */
         .card {
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-            border: none; /* Remove default card border */
-            border-radius: 0.75rem; /* Slightly more rounded corners */
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 12px; /* Consistent with other cards */
+            box-shadow: 0 10px 30px var(--shadow-color);
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            overflow: hidden;
         }
 
         .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); /* Slightly larger shadow on hover */
+            transform: translateY(-5px); /* Lift effect on hover */
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6); /* Deeper shadow on hover */
         }
 
         /* Card header styling */
         .card-header {
-            background-color: #007bff; /* Primary blue for header, consistent with forms */
-            color: white;
+            background: linear-gradient(90deg, var(--accent-color) 0%, var(--primary-button-bg) 100%); /* Blue to Red gradient for categories header */
+            color: var(--heading-color);
             text-align: center;
-            padding: 1.25rem; /* Increased padding */
-            border-bottom: none !important; /* Remove default card-header border */
-            border-top-left-radius: 0.75rem !important; /* Match card border-radius */
-            border-top-right-radius: 0.75rem !important; /* Match card border-radius */
+            padding: 25px 20px; /* Increased padding */
+            border-bottom: none !important;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .card-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top right, rgba(255,255,255,0.1) 0%, transparent 50%);
+            z-index: -1;
+            opacity: 0.2;
         }
 
         .card-header h2 {
-            font-size: 2rem; /* Larger heading */
-            font-weight: 600; /* Bolder heading */
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 2.2em; /* Larger heading */
             margin-bottom: 0;
+            text-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
         }
 
         /* Card body padding */
         .card-body {
-            padding: 2rem; /* Increased padding */
+            padding: 30px 40px; /* Consistent padding with other cards */
+            color: var(--text-color); /* Ensure text is visible */
         }
 
         /* Table specific enhancements */
         .table {
-            border-collapse: separate; /* Allows border-radius on cells */
+            border-collapse: separate;
             border-spacing: 0;
-            margin-bottom: 1.5rem; /* Space below table */
+            margin-bottom: 1.5rem;
+            background-color: var(--form-element-bg); /* Darker background for table itself */
+            border-radius: 8px; /* Rounded corners for the table */
+            overflow: hidden; /* Ensures rounded corners are visible */
         }
 
         .table thead th {
-            background-color: #e9ecef; /* Lighter grey for table header */
-            color: #495057; /* Darker text for header */
+            background-color: var(--accent-color); /* Darker, themed header background */
+            color: var(--heading-color);
             font-weight: 600;
             vertical-align: middle;
-            padding: 1rem 1.25rem; /* More padding in header cells */
-            border-bottom: 2px solid #dee2e6; /* Clearer separator */
+            padding: 1rem 1.25rem;
+            border-bottom: 2px solid var(--border-color); /* Consistent border color */
+            font-family: 'Montserrat', sans-serif; /* Use Montserrat for headers */
+            font-size: 0.95em;
         }
 
         .table tbody tr {
@@ -66,105 +124,194 @@
         }
 
         .table tbody tr:hover {
-            background-color: #f0f2f5; /* Light hover effect for rows */
+            background-color: rgba(224, 224, 224, 0.05); /* Light hover effect for rows */
         }
 
         .table tbody td {
             vertical-align: middle;
-            padding: 1rem 1.25rem; /* Consistent padding in body cells */
+            padding: 1rem 1.25rem;
+            border-top: 1px solid var(--border-color); /* Consistent border for rows */
+            color: var(--text-color);
+            font-family: 'Roboto', sans-serif;
         }
 
         /* Action buttons in table */
         .btn-sm {
-            padding: 0.375rem 0.75rem; /* Standard small button padding */
-            font-size: 0.875rem; /* Standard small button font size */
-            border-radius: 0.3rem; /* Small button border-radius */
+            padding: 0.5rem 1rem; /* Slightly larger small buttons for better clickability */
+            font-size: 0.85em;
+            border-radius: 20px; /* Pill shape for small buttons too */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Softer shadow for small buttons */
         }
 
-        .btn-outline-primary {
-            color: #007bff;
-            border-color: #007bff;
+        /* Custom styles for outline buttons - using themed colors */
+        .btn-edit {
+            background-image: linear-gradient(45deg, var(--accent-color) 0%, #0f3460 100%);
+            color: #ffffff;
+            border: none;
+        }
+        .btn-edit:hover {
+            background-position: 100% 0;
+            box-shadow: 0 6px 12px rgba(15, 52, 96, 0.5);
+            transform: translateY(-2px);
+            color: #ffffff;
         }
 
-        .btn-outline-primary:hover {
-            background-color: #007bff;
-            color: white;
+        .btn-delete {
+            background-image: linear-gradient(45deg, var(--primary-button-bg) 0%, #ff6b6b 100%);
+            color: #ffffff;
+            border: none;
         }
-
-        .btn-outline-danger {
-            color: #dc3545;
-            border-color: #dc3545;
-        }
-
-        .btn-outline-danger:hover {
-            background-color: #dc3545;
-            color: white;
+        .btn-delete:hover {
+            background-position: 100% 0;
+            box-shadow: 0 6px 12px rgba(233, 69, 96, 0.5);
+            transform: translateY(-2px);
+            color: #ffffff;
         }
 
         /* "No categories yet" message */
-        .text-center {
-            font-size: 1.1rem;
-            color: #6c757d;
-            padding: 1.5rem 0; /* Add some padding */
+        .no-categories-message { /* Custom class for styling */
+            font-size: 1.15rem;
+            color: var(--nav-link-color); /* Use a softer color */
+            padding: 2.5rem 0; /* More padding */
+            font-family: 'Roboto', sans-serif;
+            font-weight: 400;
         }
 
         /* Add New Category Button */
         .d-grid {
-            margin-top: 2rem; /* More space above the button */
+            margin-top: 2.5rem; /* More space above the button */
         }
 
-        .btn-primary {
-            background-color: #007bff;
-            border-color: #007bff;
+        .btn-primary { /* Inherits styles from base.html */
             font-weight: 600;
-            padding: 0.75rem 1.5rem; /* Larger padding for main action button */
-            font-size: 1.1rem;
-            border-radius: 0.5rem; /* More rounded button */
+            padding: 15px 30px; /* Larger padding for main action button */
+            font-size: 1.2em;
         }
 
-        .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #004085;
-        }
-
-        /* Specific styling for category type (optional, if you want different colors) */
+        /* Specific styling for category type */
         .category-type-expense {
-            color: #dc3545; /* Red for expense */
+            color: var(--primary-button-bg); /* Use primary button red for expense */
             font-weight: 500;
         }
         .category-type-income {
-            color: #28a745; /* Green for income */
+            color: #28a745; /* Consistent green for income */
             font-weight: 500;
         }
 
+        /* Table caption style */
+        .table caption {
+            color: var(--nav-link-color); /* Lighter text for caption */
+            font-size: 0.95em;
+            margin-bottom: 10px;
+            text-align: left;
+            padding-left: 10px;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 300;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 991.98px) {
+            .table thead th {
+                font-size: 0.85em;
+                padding: 0.8rem;
+            }
+            .table tbody td {
+                padding: 0.8rem;
+                font-size: 0.9em;
+            }
+            .btn-sm {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8em;
+            }
+            .d-grid {
+                width: 70%;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .card-header h2 {
+                font-size: 1.8em;
+            }
+            .card-body {
+                padding: 20px;
+            }
+            .table-responsive {
+                border-radius: 8px; /* Apply border-radius to table-responsive wrapper */
+                overflow-x: auto; /* Ensure scrolling on small screens */
+            }
+            .table {
+                margin-bottom: 1rem;
+            }
+            .no-categories-message {
+                font-size: 1em;
+                padding: 1.5rem 0;
+            }
+            .d-grid {
+                width: 90%;
+            }
+            .btn-primary {
+                font-size: 1.1em;
+                padding: 12px 25px;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .card {
+                margin: 0 15px;
+            }
+            .card-header h2 {
+                font-size: 1.5em;
+            }
+            .card-body {
+                padding: 15px;
+            }
+            .table tbody td {
+                font-size: 0.85em;
+            }
+            .btn-sm {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.75em;
+            }
+            .d-flex.flex-nowrap {
+                flex-direction: column;
+                gap: 5px; /* Stack buttons vertically on very small screens */
+            }
+            .d-grid {
+                width: 100%;
+            }
+        }
     </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5 mb-5"> {# Increased top margin, added bottom margin #}
+<div class="container mt-5 mb-5">
     <div class="row justify-content-center">
-        <div class="col-md-10 col-lg-9"> {# Adjusted column width for wider table on larger screens #}
-            <div class="card shadow-lg"> {# More pronounced shadow, consistent with forms #}
-                <div class="card-header"> {# bg-info removed, now uses custom blue defined in style #}
+        <div class="col-md-10 col-lg-9">
+            <div class="card shadow-lg">
+                <div class="card-header">
                     <h2 class="mb-0">My Categories</h2>
                 </div>
                 <div class="card-body">
                     {% with messages = get_flashed_messages(with_categories=true) %}
                         {% if messages %}
-                            {% for category, message in messages %}
-                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            <div class="flashes mb-4">
+                                {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                                {% endfor %}
                             </div>
-                            {% endfor %}
                         {% endif %}
                     {% endwith %}
 
                     {% if categories %}
                     <div class="table-responsive">
-                        <table class="table table-hover table-striped caption-top"> {# Added caption-top for potential future table caption #}
-                            <caption class="text-start mb-2">A list of your expense and income categories.</caption> {# Added a table caption for context #}
-                            <thead class="table-light">
+                        <table class="table table-hover table-striped caption-top">
+                            <caption class="text-start mb-2">A list of your expense and income categories.</caption>
+                            <thead class="table-dark">
                                 <tr>
                                     <th>Name</th>
                                     <th>Type</th>
@@ -174,15 +321,17 @@
                             <tbody>
                                 {% for category in categories %}
                                 <tr>
-                                    <td class="fw-bold">{{ category.name }}</td> {# Make category name bold #}
+                                    <td class="fw-bold">{{ category.name }}</td>
                                     <td class="text-capitalize {% if category.type == 'income' %}category-type-income{% elif category.type == 'expense' %}category-type-expense{% endif %}">
                                         {{ category.type }}
                                     </td>
                                     <td>
-                                        <a href="{{ url_for('edit_category', category_id=category.id) }}" class="btn btn-outline-primary btn-sm me-2">Edit</a> {# CORRECTED #}
-                                        <form action="{{ url_for('delete_category', category_id=category.id) }}" method="POST" class="d-inline"> {# CORRECTED #}
-                                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to delete this category? All associated transactions will also be affected.')">Delete</button>
-                                        </form>
+                                        <div class="d-flex flex-nowrap">
+                                            <a href="{{ url_for('edit_category', category_id=category.id) }}" class="btn btn-sm btn-edit me-2" aria-label="Edit category {{ category.name }}">Edit</a>
+                                            <form action="{{ url_for('delete_category', category_id=category.id) }}" method="POST" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-delete" onclick="return confirm('Are you sure you want to delete the category \'{{ category.name }}\'? All associated transactions will also be affected.');" aria-label="Delete category {{ category.name }}">Delete</button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -190,11 +339,11 @@
                         </table>
                     </div>
                     {% else %}
-                    <p class="text-center">No categories added yet. Start by adding a new one!</p>
+                    <p class="text-center no-categories-message">No categories added yet. Start by adding a new one!</p>
                     {% endif %}
 
-                    <div class="d-grid mt-4"> {# Added more top margin for the button #}
-                        <a href="{{ url_for('add_category') }}" class="btn btn-primary btn-lg">Add New Category</a> {# CORRECTED #}
+                    <div class="d-grid mt-4">
+                        <a href="{{ url_for('add_category') }}" class="btn btn-primary btn-lg">Add New Category</a>
                     </div>
                 </div>
             </div>

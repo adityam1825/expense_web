@@ -4,132 +4,259 @@
 
 {% block head %}
     {{ super() }} {# This line is important to include anything from base.html's head block #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        /* General Body Styling (if not already in base.html or a linked external CSS) */
-        body {
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; /* Modern font stack */
-            background-color: #f8f9fa; /* Lighter background for the entire app */
+        /* CSS Variables are assumed to be defined in base.html */
+        /* If they are not, uncomment and place them here:
+        :root {
+            --background-color: #1a1a2e;
+            --card-background: #16213e;
+            --text-color: #e0e0e0;
+            --heading-color: #e0e0e0;
+            --accent-color: #0f3460;
+            --primary-button-bg: #e94560;
+            --primary-button-hover-bg: #c93550;
+            --secondary-button-bg: #533483;
+            --secondary-button-hover-bg: #432a6a;
+            --border-color: #0f3460;
+            --shadow-color: rgba(0, 0, 0, 0.4);
+            --form-element-bg: #0e162f;
+            --form-border: #0f3460;
+            --form-focus-border: #e94560;
+
+            --flash-success-bg: #28a745;
+            --flash-success-color: #ffffff;
+            --flash-error-bg: #dc3545;
+            --flash-error-color: #ffffff;
+            --flash-info-bg: #007bff;
+            --flash-info-color: #ffffff;
+            --flash-warning-bg: #ffc107;
+            --flash-warning-color: #343a40;
+        }
+        */
+
+        /* Main container padding */
+        .container.mt-5.mb-5 {
+            padding-top: 50px;
+            padding-bottom: 50px;
         }
 
         /* Card container adjustments for consistency */
         .card {
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-            border: none; /* Remove default card border */
-            border-radius: 0.75rem; /* Slightly more rounded corners */
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 12px; /* Consistent with other cards */
+            box-shadow: 0 10px 30px var(--shadow-color);
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            overflow: hidden;
         }
 
         .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); /* Slightly larger shadow on hover */
+            transform: translateY(-5px); /* Lift effect on hover */
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6); /* Deeper shadow on hover */
         }
 
         /* Card header styling */
         .card-header {
-            background-color: #28a745; /* Success green for this header */
-            color: white;
+            /* Using a success-themed gradient for "Add New Category" */
+            background: linear-gradient(90deg, #28a745 0%, #30c04f 100%);
+            color: var(--heading-color);
             text-align: center;
-            padding: 1.25rem; /* Increased padding */
-            border-bottom: none !important; /* Remove default card-header border */
-            border-top-left-radius: 0.75rem !important; /* Match card border-radius */
-            border-top-right-radius: 0.75rem !important; /* Match card border-radius */
+            padding: 25px 20px; /* Increased padding */
+            border-bottom: none !important;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .card-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top right, rgba(255,255,255,0.1) 0%, transparent 50%);
+            z-index: -1;
+            opacity: 0.2;
         }
 
         .card-header h2 {
-            font-size: 2rem; /* Larger heading */
-            font-weight: 600; /* Bolder heading */
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 2.2em; /* Larger heading */
             margin-bottom: 0;
+            text-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
         }
 
         /* Card body padding */
         .card-body {
-            padding: 2rem; /* Increased padding */
+            padding: 30px 40px; /* Consistent padding with other cards */
+            color: var(--text-color); /* Ensure text is visible */
         }
 
         /* Form element styling */
         .form-label {
-            font-weight: 600; /* Bolder labels */
-            color: #343a40; /* Darker grey for labels */
+            font-weight: 500; /* Consistent weight with base.html forms */
+            color: var(--text-color); /* Consistent text color with base.html forms */
+            font-family: 'Roboto', sans-serif;
+            font-size: 1.05em; /* Slightly larger labels */
         }
 
         .form-control,
         .form-select {
-            border-radius: .4rem; /* Slightly more rounded inputs/selects */
-            padding: 0.75rem 1rem; /* More padding inside inputs */
+            border-radius: 8px; /* Consistent rounded inputs/selects from base.html */
+            background-color: var(--form-element-bg);
+            color: var(--text-color);
+            border: 1px solid var(--form-border);
+            padding: 10px 15px; /* Consistent padding inside inputs */
+            font-size: 1.05em;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
         }
 
         .form-control:focus,
         .form-select:focus {
-            border-color: #80bdff;
-            box-shadow: 0 0 0 .25rem rgba(0, 123, 255, .25);
-            outline: none; /* Remove default outline */
+            border-color: var(--form-focus-border);
+            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.3), inset 0 2px 5px rgba(0, 0, 0, 0.3); /* Consistent focus glow */
+            background-color: #121d33; /* Slightly lighter on focus for contrast */
+            outline: none;
         }
 
-        /* Button enhancements */
+        .form-control::placeholder {
+            color: rgba(224, 224, 224, 0.6); /* Placeholder color for dark theme */
+        }
+
+        .form-select option {
+            background-color: var(--form-element-bg);
+            color: var(--text-color);
+        }
+        .form-select option:first-child {
+            color: rgba(224, 224, 224, 0.6);
+        }
+        .form-select option:checked {
+            background-color: var(--accent-color);
+            color: #ffffff;
+        }
+
+
+        /* Button enhancements - inheriting from base.html */
+        /* Specific overrides for this page if needed */
         .btn-lg {
-            font-weight: 600; /* Make large buttons bolder */
-            padding: 0.75rem 1.5rem; /* Larger padding for main action button */
-            font-size: 1.1rem;
-            border-radius: 0.5rem; /* More rounded button */
+            font-weight: 600;
+            padding: 15px 30px; /* Larger padding for main action button */
+            font-size: 1.2em;
+            border-radius: 30px; /* Pill shape for consistency */
         }
 
         .btn-success {
-            background-color: #28a745; /* Standard Bootstrap success green */
-            border-color: #28a745;
+            /* Overrides the default Bootstrap success to use a gradient */
+            background-image: linear-gradient(45deg, #28a745 0%, #30c04f 100%);
+            border-color: #28a745; /* Keeps original border for a solid look */
+            color: #ffffff;
         }
 
         .btn-success:hover {
-            background-color: #218838;
-            border-color: #1e7e34;
+            background-position: 100% 0; /* Activates the gradient shift */
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.5); /* Themed shadow */
+            transform: translateY(-3px); /* Lift effect */
         }
 
         .btn-secondary {
-            background-color: #6c757d; /* Standard grey */
-            border-color: #6c757d;
+            /* Overrides the default Bootstrap secondary to use a gradient */
+            background-image: linear-gradient(45deg, var(--secondary-button-bg) 0%, #8d62ab 100%);
+            border-color: var(--secondary-button-bg); /* Keeps original border for a solid look */
+            color: #ffffff;
         }
 
         .btn-secondary:hover {
-            background-color: #5a6268;
-            border-color: #545b62;
+            background-position: 100% 0; /* Activates the gradient shift */
+            box-shadow: 0 10px 20px rgba(83, 52, 131, 0.5); /* Themed shadow */
+            transform: translateY(-3px); /* Lift effect */
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 767.98px) {
+            .card-header h2 {
+                font-size: 1.8em;
+            }
+            .card-body {
+                padding: 20px;
+            }
+            .form-label {
+                font-size: 0.95em;
+            }
+            .form-control, .form-select {
+                font-size: 0.95em;
+                padding: 8px 12px;
+            }
+            .btn-lg {
+                font-size: 1.1em;
+                padding: 12px 25px;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .card {
+                margin: 0 15px;
+            }
+            .card-header h2 {
+                font-size: 1.5em;
+            }
+            .card-body {
+                padding: 15px;
+            }
+            .btn-lg {
+                font-size: 1em;
+                padding: 10px 20px;
+            }
         }
     </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5 mb-5"> {# Increased top margin, added bottom margin for consistent spacing #}
+<div class="container mt-5 mb-5">
     <div class="row justify-content-center">
-        <div class="col-lg-6 col-md-8"> {# Adjusted column width for wider card on larger screens, narrower overall for a focused form #}
-            <div class="card shadow-lg border-0"> {# More pronounced shadow, removed default border #}
-                <div class="card-header"> {# bg-success removed, now uses custom green defined in style #}
+        <div class="col-lg-6 col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header">
                     <h2 class="mb-0">Add New Category</h2>
                 </div>
-                <div class="card-body p-4"> {# Increased padding for card body #}
+                <div class="card-body p-4">
+                    {# Flash messages will appear here, handled by base.html's styling #}
                     {% with messages = get_flashed_messages(with_categories=true) %}
                         {% if messages %}
-                            {% for category, message in messages %}
-                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            <div class="flashes mb-4">
+                                {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                                {% endfor %}
                             </div>
-                            {% endfor %}
                         {% endif %}
                     {% endwith %}
 
-                    <form method="POST" action="{{ url_for('add_category') }}"> {# CORRECTED #}
+                    <form method="POST" action="{{ url_for('add_category') }}">
                         <div class="mb-3">
-                            <label for="name" class="form-label fw-bold">Category Name</label> {# Made label bold #}
-                            <input type="text" class="form-control" id="name" name="name" required placeholder="e.g., Groceries, Salary, Rent" aria-label="Category Name"> {# Added aria-label #}
+                            <label for="name" class="form-label">Category Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required placeholder="e.g., Groceries, Salary, Rent" aria-label="Category Name">
                         </div>
-                        <div class="mb-4"> {# Increased bottom margin for input #}
-                            <label for="type" class="form-label fw-bold">Category Type</label> {# Made label bold #}
-                            <select class="form-select" id="type" name="type" required aria-label="Category Type (Expense or Income)"> {# Changed from form-control to form-select, added aria-label #}
-                                <option value="">Select Type</option> {# Added a placeholder option #}
+                        <div class="mb-4">
+                            <label for="type" class="form-label">Category Type</label>
+                            <select class="form-select" id="type" name="type" required aria-label="Category Type (Expense or Income)">
+                                <option value="">Select Type</option>
                                 <option value="expense">Expense</option>
                                 <option value="income">Income</option>
                             </select>
                         </div>
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success btn-lg">Add Category</button> {# Larger button #}
-                            <a href="{{ url_for('list_categories') }}" class="btn btn-secondary btn-lg">View All Categories</a> {# CORRECTED #}
+                            <button type="submit" class="btn btn-success btn-lg">Add Category</button>
+                            <a href="{{ url_for('list_categories') }}" class="btn btn-secondary btn-lg">View All Categories</a>
                         </div>
                     </form>
                 </div>

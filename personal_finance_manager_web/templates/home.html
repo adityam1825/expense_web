@@ -1,8 +1,302 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Welcome to Personal Finance Manager{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        /* Import Google Fonts - already linked above, but good practice to have in CSS if not in HTML */
+        /* @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Roboto:wght@300;400;500&display=swap'); */
 
-{% block title %}Welcome to Personal Finance Manager{% endblock %}
+        :root {
+            /* Dark Mode Colors */
+            --background-color: #1a1a2e;
+            --card-background: #16213e;
+            --text-color: #e0e0e0;
+            --heading-color: #e0e0e0;
+            --accent-color: #0f3460;
+            --primary-button-bg: #e94560;
+            --primary-button-hover-bg: #c93550;
+            --secondary-button-bg: #533483;
+            --secondary-button-hover-bg: #432a6a;
+            --border-color: #0f3460;
+            --shadow-color: rgba(0, 0, 0, 0.4);
+        }
 
-{% block content %}
+        /* Base Styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* General Link Styling (if not part of a button) */
+        a {
+            color: var(--primary-button-bg);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            color: var(--primary-button-hover-bg);
+        }
+
+        /* Layout and Welcome Section */
+        .welcome-section {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 30px;
+            background: var(--card-background);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px var(--shadow-color);
+            text-align: center;
+            position: relative;
+            overflow: hidden; /* For pseudo-element gradients */
+            z-index: 1; /* Ensure content is above pseudo-elements */
+        }
+
+        /* Subtle Gradient Overlay for Welcome Section */
+        .welcome-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at top left, var(--accent-color) 0%, transparent 40%),
+                        radial-gradient(circle at bottom right, var(--secondary-button-bg) 0%, transparent 40%);
+            opacity: 0.1;
+            z-index: -1;
+            animation: rotateGradient 15s linear infinite;
+        }
+
+        @keyframes rotateGradient {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            color: var(--heading-color);
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(90deg, #e94560, #533483);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .tagline {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 400;
+            font-size: 1.3em;
+            color: var(--text-color);
+            margin-bottom: 30px;
+        }
+
+        /* About Section */
+        .about-app {
+            background-color: var(--accent-color);
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 30px;
+            text-align: left;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .about-app:hover {
+            transform: translateY(-5px);
+            box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.5), 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .about-app h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            color: var(--heading-color);
+            font-size: 2em;
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .about-app p {
+            margin-bottom: 15px;
+            color: var(--text-color);
+        }
+
+        .about-app ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
+
+        .about-app ul li {
+            background-color: var(--background-color);
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease, background-color 0.2s ease;
+            border-left: 4px solid var(--primary-button-bg);
+        }
+
+        .about-app ul li:hover {
+            transform: translateX(5px);
+            background-color: #2b2b45; /* Slightly lighter on hover */
+            border-left-color: var(--secondary-button-bg);
+        }
+
+        .about-app ul li::before {
+            content: '🚀'; /* Modern bullet icon */
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        /* Call to Action Buttons */
+        .cta-buttons {
+            margin-top: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px; /* Space between buttons */
+        }
+
+        .cta-buttons p {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            width: 100%; /* Ensure text takes full width above buttons */
+        }
+
+        .button {
+            display: inline-block;
+            padding: 15px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+            border: none;
+            text-align: center;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            background-size: 200% 200%; /* For gradient animation */
+        }
+
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.0) 50%, rgba(255,255,255,0.1) 100%);
+            transform: translateX(-100%);
+            transition: transform 0.4s ease-in-out;
+            z-index: 0;
+        }
+
+        .button:hover::before {
+            transform: translateX(100%);
+        }
+
+        .button.primary {
+            background-image: linear-gradient(45deg, var(--primary-button-bg) 0%, #ff6b6b 100%);
+            color: #ffffff;
+        }
+
+        .button.primary:hover {
+            background-position: 100% 0; /* Move gradient on hover */
+            box-shadow: 0 12px 20px rgba(233, 69, 96, 0.5);
+            transform: translateY(-3px);
+        }
+
+        .button.secondary {
+            background-image: linear-gradient(45deg, var(--secondary-button-bg) 0%, #8d62ab 100%);
+            color: #ffffff;
+        }
+
+        .button.secondary:hover {
+            background-position: 100% 0; /* Move gradient on hover */
+            box-shadow: 0 12px 20px rgba(83, 52, 131, 0.5);
+            transform: translateY(-3px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .welcome-section {
+                margin: 20px;
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .tagline {
+                font-size: 1.1em;
+            }
+
+            .about-app h2 {
+                font-size: 1.8em;
+            }
+
+            .about-app ul {
+                grid-template-columns: 1fr; /* Stack list items on small screens */
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .button {
+                width: 80%; /* Make buttons wider on small screens */
+                padding: 12px 20px;
+                font-size: 1em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.6em;
+            }
+
+            .tagline {
+                font-size: 1em;
+            }
+
+            .about-app p, .about-app ul li {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
     <div class="welcome-section">
         <h1>Welcome to Your Personal Finance Manager!</h1>
         <p class="tagline">Take control of your money, simplify your life.</p>
@@ -15,6 +309,7 @@
                 <li>Easy Income and Expense Tracking</li>
                 <li>Customizable Categories</li>
                 <li>Flexible Budgeting Tools</li>
+                <li>Easy To Use</li>
                 <li>Comprehensive Financial Reports</li>
                 <li>Secure User Authentication</li>
             </ul>
@@ -24,12 +319,13 @@
         <div class="cta-buttons">
             {% if not current_user.is_authenticated %}
                 <p>Ready to get started?</p>
-                <a href="{{ url_for('register') }}" class="button primary">Register Now</a> {# CORRECTED #}
-                <a href="{{ url_for('login') }}" class="button secondary">Log In</a> {# CORRECTED #}
+                <a href="{{ url_for('register') }}" class="button primary">Register Now</a>
+                <a href="{{ url_for('login') }}" class="button secondary">Log In</a>
             {% else %}
                 <p>Welcome back, {{ current_user.username }}!</p>
-                <a href="{{ url_for('dashboard_page') }}" class="button primary">Go to Dashboard</a> {# This was already correct #}
+                <a href="{{ url_for('dashboard_page') }}" class="button primary">Go to Dashboard</a>
             {% endif %}
         </div>
     </div>
-{% endblock %}
+</body>
+</html>

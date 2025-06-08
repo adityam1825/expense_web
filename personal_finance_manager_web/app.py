@@ -14,7 +14,7 @@ from flask_migrate import Migrate
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'your_super_secret_key_here' # USE A STRONG, RANDOM KEY IN PRODUCTION
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'postgresql://postgres:root%40123@localhost:5432/finance_db' # Corrected: '@' in password is URL-encoded to '%40'
+        'postgresql://postgres:newceo@localhost:5432/finance_db' # Corrected: '@' in password is URL-encoded to '%40'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = os.environ.get('FLASK_DEBUG') == '1'
 

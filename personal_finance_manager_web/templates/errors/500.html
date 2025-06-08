@@ -4,59 +4,165 @@
 
 {% block head %}
     {{ super() }}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
+        /* CSS Variables are assumed to be defined in base.html */
+        /* If they are not, uncomment and place them here:
+        :root {
+            --background-color: #1a1a2e;
+            --card-background: #16213e;
+            --text-color: #e0e0e0;
+            --heading-color: #e0e0e0;
+            --accent-color: #0f3460;
+            --primary-button-bg: #e94560;
+            --primary-button-hover-bg: #c93550;
+            --secondary-button-bg: #533483;
+            --secondary-button-hover-bg: #432a6a;
+            --border-color: #0f3460;
+            --shadow-color: rgba(0, 0, 0, 0.4);
+            --form-element-bg: #0e162f;
+            --form-border: #0f3460;
+            --form-focus-border: #e94560;
+
+            --flash-success-bg: #28a745;
+            --flash-success-color: #ffffff;
+            --flash-error-bg: #dc3545;
+            --flash-error-color: #ffffff;
+            --flash-info-bg: #007bff;
+            --flash-info-color: #ffffff;
+            --flash-warning-bg: #ffc107;
+            --flash-warning-color: #343a40;
+        }
+        */
+
         /* Custom styles for the 500 error page */
         .error-container {
-            min-height: calc(100vh - 120px); /* Adjust based on your header/footer height */
+            /* Full height minus header/footer for centering */
+            min-height: calc(100vh - var(--navbar-height, 60px) - var(--footer-height, 40px));
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
             padding: 2rem;
-            color: #495057; /* Darker grey for text */
+            background-color: var(--background-color); /* Use dark background */
+            color: var(--text-color); /* Use text color */
+            font-family: 'Roboto', sans-serif; /* Consistent font */
         }
 
         .error-code {
-            font-size: 8rem; /* Large font size for 500 */
-            font-weight: 700; /* Bold */
-            color: #ffc107; /* Bootstrap warning yellow */
+            font-family: 'Montserrat', sans-serif; /* Use Montserrat for the large number */
+            font-size: 10rem; /* Even larger for impact */
+            font-weight: 700;
+            color: var(--flash-warning-bg); /* Use the warning yellow from your theme */
             margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); /* Subtle text shadow */
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.4); /* More pronounced shadow */
+            letter-spacing: 5px;
+            animation: bounceIn 1s ease-out; /* Add a subtle animation */
         }
 
         .error-message {
-            font-size: 1.8rem; /* Slightly larger message */
+            font-size: 2.2rem; /* Larger, more impactful message */
             margin-bottom: 1.5rem;
-            color: #6c757d; /* Lighter grey for message */
+            color: var(--heading-color); /* Use heading color for main message */
+            font-weight: 600;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 1.5s ease-out;
         }
 
         .error-suggestion {
-            font-size: 1.1rem;
-            margin-bottom: 2rem;
+            font-size: 1.3rem; /* Larger suggestion */
+            margin-bottom: 2.5rem;
+            color: var(--nav-link-color); /* Softer color for suggestion */
+            font-weight: 300;
+            animation: fadeIn 2s ease-out;
         }
 
         .btn-go-home {
-            padding: 0.8rem 2rem;
-            font-size: 1.2rem;
-            font-weight: 600;
-            border-radius: 0.5rem; /* Rounded corners for button */
-            background-color: #007bff; /* Primary blue */
-            border-color: #007bff;
+            /* Inherit primary button styles from base.html for consistency */
+            background-image: linear-gradient(45deg, var(--accent-color) 0%, #30c04f 100%); /* A blend of accent and success for a helpful look */
+            border: none;
             color: white;
-            transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+            padding: 0.9rem 2.5rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            border-radius: 30px; /* Pill shape */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease-in-out;
         }
 
         .btn-go-home:hover {
-            background-color: #0056b3;
-            border-color: #004085;
-            transform: translateY(-2px); /* Slight lift on hover */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow on hover */
+            background-position: 100% 0; /* Gradient shift */
+            transform: translateY(-5px) scale(1.02); /* More noticeable lift and slight scale */
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
         }
 
-        /* Ensure body background color is consistent, if not already in base.html */
-        body {
-            background-color: #f8f9fa;
+        /* Animations */
+        @keyframes bounceIn {
+            0%, 20%, 40%, 60%, 80%, 100% {
+                transition-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+            }
+            0% {
+                opacity: 0;
+                transform: scale3d(.3, .3, .3);
+            }
+            20% {
+                transform: scale3d(1.1, 1.1, 1.1);
+            }
+            40% {
+                transform: scale3d(.9, .9, .9);
+            }
+            60% {
+                opacity: 1;
+                transform: scale3d(1.03, 1.03, 1.03);
+            }
+            80% {
+                transform: scale3d(.97, .97, .97);
+            }
+            100% {
+                opacity: 1;
+                transform: scale3d(1, 1, 1);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 767.98px) {
+            .error-code {
+                font-size: 6rem;
+            }
+            .error-message {
+                font-size: 1.5rem;
+            }
+            .error-suggestion {
+                font-size: 1rem;
+            }
+            .btn-go-home {
+                padding: 0.7rem 2rem;
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .error-code {
+                font-size: 4rem;
+            }
+            .error-message {
+                font-size: 1.2rem;
+            }
+            .error-suggestion {
+                font-size: 0.9rem;
+            }
+            .btn-go-home {
+                padding: 0.6rem 1.5rem;
+                font-size: 1rem;
+            }
         }
     </style>
 {% endblock %}
@@ -67,7 +173,7 @@
     <p class="error-message">Something went wrong on our end.</p>
     <p class="error-suggestion">An internal server error occurred. We're working hard to fix it!</p>
     <p>
-        <a href="{{ url_for('dashboard_page') }}" class="btn btn-go-home">Go to Dashboard</a> {# CORRECTED: Assuming 'dashboard_page' is the actual endpoint #}
+        <a href="{{ url_for('dashboard_page') }}" class="btn btn-go-home">Go to Dashboard</a>
     </p>
 </div>
 {% endblock %}
