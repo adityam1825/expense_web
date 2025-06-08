@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, flash, redirect, url_for, Blu
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, UTC # Added UTC here
 from sqlalchemy import func
 from decimal import Decimal
 from flask_migrate import Migrate
@@ -14,7 +14,7 @@ from flask_migrate import Migrate
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'your_super_secret_key_here' # USE A STRONG, RANDOM KEY IN PRODUCTION
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'postgresql://postgres:Next@123@localhost:5432/finance_db'
+        'postgresql://postgres:root%40123@localhost:5432/finance_db' # Corrected: '@' in password is URL-encoded to '%40'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = os.environ.get('FLASK_DEBUG') == '1'
 
@@ -26,8 +26,10 @@ migrate = Migrate()
 class Base(db.Model):
     __abstract__ = True
     id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    # Corrected: Use datetime.now(UTC) and lambda for default
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC))
+    # Corrected: Use datetime.now(UTC) and lambda for default and onupdate
+    updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
 class User(UserMixin, Base):
     __tablename__ = 'users'
@@ -67,7 +69,8 @@ class Transaction(Base):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     amount = db.Column(db.Numeric(10, 2), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    date = db.Column(db.Date, nullable=False, default=datetime.utcnow().date())
+    # Corrected: Use datetime.now(UTC).date() and lambda for default
+    date = db.Column(db.Date, nullable=False, default=lambda: datetime.now(UTC).date())
     type = db.Column(db.String(10), nullable=False) # 'income' or 'expense'
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
 
@@ -79,7 +82,8 @@ class Budget(Base):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     category_name = db.Column(db.String(100), nullable=False) # Storing name as string
     amount = db.Column(db.Numeric(10, 2), nullable=False)
-    start_date = db.Column(db.Date, nullable=False, default=datetime.utcnow().date())
+    # Corrected: Use datetime.now(UTC).date() and lambda for default
+    start_date = db.Column(db.Date, nullable=False, default=lambda: datetime.now(UTC).date())
     end_date = db.Column(db.Date, nullable=True)
     __table_args__ = (db.UniqueConstraint('user_id', 'category_name', 'start_date', name='_user_category_start_date_uc'),)
 
@@ -104,7 +108,7 @@ def create_app():
 
     with app.app_context():
         # db.create_all() # UNCOMMENT THIS ONLY ONCE FOR INITIAL TABLE CREATION IF NOT USING MIGRATIONS, THEN COMMENT OUT AGAIN
-        pass
+        db.create_all()  # Ensure all tables are created
 
     # --- Routes ---
 
@@ -406,7 +410,7 @@ def create_app():
                 Category.name == budget.category_name,
                 Transaction.type == 'expense',
                 Transaction.date >= current_month_start, # Calculating spent for current month
-                Transaction.date < next_month_start      # within the budget's category
+                Transaction.date < next_month_start       # within the budget's category
             ).scalar() or Decimal('0.00')
 
             remaining = budget.amount - spent_on_budget_category
@@ -418,7 +422,7 @@ def create_app():
                 'start_date': budget.start_date,
                 'end_date': budget.end_date,
                 'spent': spent_on_budget_category, # Calculated spent for current month
-                'remaining': remaining,           # Calculated remaining for current month
+                'remaining': remaining,            # Calculated remaining for current month
                 'status': 'Under Budget' if remaining >= 0 else 'Over Budget'
             })
 
@@ -696,98 +700,86 @@ def create_app():
 
         # 2. Get selected filters from request args, default to current month/year, no specific category
         selected_month = request.args.get('month', type=int, default=today.month)
-        selected_year = request.args.get('year', type=int, default=today.year)
-        selected_expense_category_id = request.args.get('expense_category_id', type=int) # Can be None if not selected
-
-        # 3. Define the date range for filtering based on selected month/year
+        selected_year = request.args.get('year', type=int, default=current_year)
+        
+        # 3. Handle category filtering
+        selected_category_name = request.args.get('category', default='all')
+        
+        # Calculate the start and end dates for the displayed month's data based on selection
         try:
-            filter_start_date = date(selected_year, selected_month, 1)
-            filter_end_date = (filter_start_date + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+            display_start_of_month = date(selected_year, selected_month, 1)
+            display_next_month = (display_start_of_month + timedelta(days=32)).replace(day=1)
         except ValueError:
-            # Fallback for invalid month/year combinations
             flash("Invalid date selection. Showing current month's breakdown.", "warning")
-            filter_start_date = today.replace(day=1)
-            filter_end_date = (filter_start_date + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+            display_start_of_month = today.replace(day=1)
+            display_next_month = (display_start_of_month + timedelta(days=32)).replace(day=1)
             selected_month = today.month
             selected_year = today.year
 
-        # 4. Fetch all expense categories for the dropdown
-        all_expense_categories = Category.query.filter_by(user_id=user_id, type='expense').order_by(Category.name).all()
+        # Fetch expense categories for the dropdown filter
+        expense_categories_for_filter = Category.query.filter_by(user_id=user_id, type='expense').order_by(Category.name).all()
 
-        # 5. Build the query for transactions
-        transactions_query = Transaction.query.filter(
+        # Build query for expenses
+        expenses_query = db.session.query(Transaction).join(Category).filter(
             Transaction.user_id == user_id,
             Transaction.type == 'expense',
-            Transaction.date >= filter_start_date,
-            Transaction.date <= filter_end_date
+            Transaction.date >= display_start_of_month,
+            Transaction.date < display_next_month
         )
 
-        if selected_expense_category_id:
-            transactions_query = transactions_query.filter(
-                Transaction.category_id == selected_expense_category_id
-            )
+        # Apply category filter if selected
+        if selected_category_name and selected_category_name != 'all':
+            expenses_query = expenses_query.filter(Category.name == selected_category_name)
+        
+        all_expenses = expenses_query.order_by(Transaction.date.desc()).all()
 
-        # 6. Calculate category-wise totals
-        expense_breakdown_data = []
-        total_breakdown_expense = Decimal('0.00')
+        # Calculate total expense for the selected filters
+        total_filtered_expense = db.session.query(func.sum(Transaction.amount)).join(Category).filter(
+            Transaction.user_id == user_id,
+            Transaction.type == 'expense',
+            Transaction.date >= display_start_of_month,
+            Transaction.date < display_next_month
+        )
+        if selected_category_name and selected_category_name != 'all':
+            total_filtered_expense = total_filtered_expense.filter(Category.name == selected_category_name)
+        
+        total_filtered_expense = total_filtered_expense.scalar() or Decimal('0.00')
 
-        # If a specific category is selected, only show that category's data
-        if selected_expense_category_id:
-            specific_category = Category.query.get(selected_expense_category_id)
-            if specific_category and specific_category.user_id == user_id and specific_category.type == 'expense':
-                total_spent = transactions_query.with_entities(func.sum(Transaction.amount)).scalar() or Decimal('0.00')
-                expense_breakdown_data.append({
-                    'name': specific_category.name,
-                    'total_spent': total_spent
-                })
-                total_breakdown_expense = total_spent
-        else:
-            # Otherwise, group by all expense categories
-            for category in all_expense_categories:
-                # Get total spent for this category within the filtered date range
-                spent_in_category = transactions_query.filter(
-                    Transaction.category_id == category.id
-                ).with_entities(func.sum(Transaction.amount)).scalar() or Decimal('0.00')
 
-                if spent_in_category > 0: # Only add categories with expenses
-                    expense_breakdown_data.append({
-                        'name': category.name,
-                        'total_spent': spent_in_category
-                    })
-                total_breakdown_expense += spent_in_category
+        # Prepare data for charts (e.g., category-wise breakdown for the selected month)
+        category_breakdown_query = db.session.query(
+            Category.name, 
+            func.sum(Transaction.amount)
+        ).join(Transaction).filter(
+            Transaction.user_id == user_id,
+            Transaction.type == 'expense',
+            Transaction.date >= display_start_of_month,
+            Transaction.date < display_next_month
+        )
+        if selected_category_name and selected_category_name != 'all':
+            category_breakdown_query = category_breakdown_query.filter(Category.name == selected_category_name)
+        
+        category_breakdown_data = category_breakdown_query.group_by(Category.name).all()
 
-        # 7. Sort the breakdown data (e.g., by total spent descending)
-        expense_breakdown_data.sort(key=lambda x: x['total_spent'], reverse=True)
-
+        chart_labels = [row[0] for row in category_breakdown_data]
+        chart_values = [float(row[1]) for row in category_breakdown_data] # Convert Decimal to float for JS charting
 
         return render_template(
             'reports/expense_breakdown_report.html',
-            current_month=filter_start_date, # This reflects the start of the selected month
-            total_breakdown_expense=total_breakdown_expense, # Total for the period and filters
-            expense_breakdown_data=expense_breakdown_data,   # Category-wise breakdown
-            current_year=current_year,                       # For the year dropdown range
-            selected_year=selected_year,                     # To pre-select year in dropdown
-            selected_month=selected_month,                   # To pre-select month in dropdown
-            all_expense_categories=all_expense_categories,   # To populate category dropdown
-            selected_expense_category_id=selected_expense_category_id # To pre-select category
+            all_expenses=all_expenses,
+            total_filtered_expense=total_filtered_expense,
+            categories_for_filter=expense_categories_for_filter, # For the dropdown
+            selected_category_name=selected_category_name,
+            selected_month=selected_month,
+            selected_year=selected_year,
+            current_year=current_year, # For year dropdown range
+            chart_labels=chart_labels,
+            chart_values=chart_values
         )
-
-    # --- Error Handlers ---
-    @app.errorhandler(404)
-    def page_not_found(e):
-        return render_template('errors/404.html'), 404
-
-    @app.errorhandler(500)
-    def internal_server_error(e):
-        db.session.rollback()
-        return render_template('errors/500.html'), 500
 
     return app
 
-# --- Run the application directly if this script is executed ---
+# This block is usually in a run.py or wsgi.py, but for simple apps it's fine here
 if __name__ == '__main__':
-    from dotenv import load_dotenv
-    load_dotenv()
-
     app = create_app()
     app.run(debug=True)
