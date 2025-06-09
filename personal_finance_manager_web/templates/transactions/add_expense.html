@@ -2,302 +2,53 @@
 
 {% block title %}Add New Expense{% endblock %}
 
-{% block head %}
-    {{ super() }}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
-    <style>
-        /* CSS Variables are assumed to be defined in base.html */
-        /* If they are not, uncomment and place them here:
-        :root {
-            --background-color: #1a1a2e;
-            --card-background: #16213e;
-            --text-color: #e0e0e0;
-            --heading-color: #e0e0e0;
-            --accent-color: #0f3460;
-            --primary-button-bg: #e94560;
-            --primary-button-hover-bg: #c93550;
-            --secondary-button-bg: #533483;
-            --secondary-button-hover-bg: #432a6a;
-            --border-color: #0f3460;
-            --shadow-color: rgba(0, 0, 0, 0.4);
-            --form-element-bg: #0e162f;
-            --form-border: #0f3460;
-            --form-focus-border: #e94560;
-
-            --flash-success-bg: #28a745;
-            --flash-success-color: #ffffff;
-            --flash-error-bg: #dc3545;
-            --flash-error-color: #ffffff;
-            --flash-info-bg: #007bff;
-            --flash-info-color: #ffffff;
-            --flash-warning-bg: #ffc107;
-            --flash-warning-color: #343a40;
-        }
-        */
-
-        .container {
-            padding-top: 3rem;
-            padding-bottom: 3rem;
-        }
-
-        .fade-in-section {
-            animation: fadeIn 0.8s ease-out forwards;
-            opacity: 0;
-        }
-
-        .card {
-            background-color: var(--card-background);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 10px 30px var(--shadow-color);
-            color: var(--text-color);
-        }
-
-        .card-header {
-            background-color: var(--card-background);
-            border-bottom: 1px solid var(--border-color);
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
-            padding: 1.5rem 1rem;
-        }
-
-        .card-header h2 {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--heading-color);
-            margin-bottom: 0;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .card-body {
-            padding: 2.5rem;
-        }
-
-        /* Form Styling */
-        .form-label {
-            color: var(--text-color);
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-            font-size: 1.05rem;
-        }
-
-        .form-control,
-        .form-select {
-            background-color: var(--form-element-bg);
-            border: 1px solid var(--form-border);
-            color: var(--text-color);
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .form-control:focus,
-        .form-select:focus {
-            border-color: var(--form-focus-border);
-            box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25); /* Glow effect from accent color */
-            background-color: var(--form-element-bg); /* Keep background consistent */
-            color: var(--text-color);
-        }
-
-        /* Specific styling for select dropdown arrow */
-        .form-select {
-            appearance: none; /* Remove default arrow for custom styling */
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23e0e0e0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 16px 12px;
-        }
-
-        .form-select option {
-            background-color: var(--form-element-bg);
-            color: var(--text-color);
-        }
-        .form-select option:hover {
-            background-color: var(--accent-color); /* Highlight on hover in dropdown */
-        }
-
-        /* Button Styling */
-        .btn-primary-expense {
-            background-image: linear-gradient(45deg, var(--primary-button-bg) 0%, var(--secondary-button-bg) 100%);
-            border: none;
-            color: white;
-            padding: 0.8rem 2rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 30px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease-in-out;
-            display: flex; /* Use flexbox for centering text if needed */
-            justify-content: center;
-            align-items: center;
-        }
-
-        .btn-primary-expense:hover {
-            background-position: 100% 0;
-            transform: translateY(-3px) scale(1.01);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            color: white; /* Ensure text stays white */
-        }
-
-        .btn-outline-secondary-cancel {
-            background-color: transparent;
-            color: var(--nav-link-color); /* Use a softer text color for cancel */
-            border: 2px solid var(--border-color); /* Use border color for outline */
-            padding: 0.8rem 2rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 30px;
-            transition: all 0.3s ease;
-            display: flex; /* Use flexbox for centering text if needed */
-            justify-content: center;
-            align-items: center;
-        }
-
-        .btn-outline-secondary-cancel:hover {
-            background-color: var(--accent-color); /* Fill with accent on hover */
-            color: white;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            transform: translateY(-2px);
-            border-color: var(--accent-color); /* Match border color on hover */
-        }
-
-        /* Flash message styling (overrides default Bootstrap for dark theme) */
-        .alert {
-            margin-top: 1.5rem;
-            margin-bottom: 1.5rem;
-            border-radius: 8px;
-            font-weight: 500;
-            animation: fadeIn 0.5s ease-out;
-            border: none; /* Remove default border */
-        }
-
-        .alert-success {
-            background-color: var(--flash-success-bg);
-            color: var(--flash-success-color);
-        }
-
-        .alert-info {
-            background-color: var(--flash-info-bg);
-            color: var(--flash-info-color);
-        }
-
-        .alert-warning {
-            background-color: var(--flash-warning-bg);
-            color: var(--flash-warning-color);
-        }
-
-        .alert-danger {
-            background-color: var(--flash-error-bg);
-            color: var(--flash-error-color);
-        }
-
-        .alert .btn-close {
-            color: white;
-            opacity: 0.8;
-            filter: invert(1); /* Invert color for dark theme */
-            font-size: 1rem;
-            padding: 0.75rem 0.75rem;
-            background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/%3e%3c/svg%3e") center/1em auto no-repeat;
-            border: none;
-        }
-        .alert .btn-close:hover {
-            opacity: 1;
-        }
-
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 767.98px) {
-            .container {
-                padding-top: 2rem;
-                padding-bottom: 2rem;
-            }
-            .card-header h2 {
-                font-size: 1.8rem;
-            }
-            .card-body {
-                padding: 1.5rem;
-            }
-            .form-label {
-                font-size: 0.95rem;
-            }
-            .form-control,
-            .form-select {
-                padding: 0.6rem 0.8rem;
-                font-size: 0.9rem;
-            }
-            .btn-primary-expense,
-            .btn-outline-secondary-cancel {
-                font-size: 1rem;
-                padding: 0.7rem 1.5rem;
-            }
-            .d-grid .btn {
-                width: 100%; /* Ensure buttons stack on small screens */
-            }
-        }
-    </style>
-{% endblock %}
-
 {% block content %}
-<div class="container mt-5 mb-5 fade-in-section">
-    <div class="row justify-content-center">
-        <div class="col-md-7 col-lg-6">
-            <div class="card shadow-lg">
-                <div class="card-header text-center">
-                    <h2>Add New Expense</h2>
-                </div>
-                <div class="card-body">
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
+<div class="form-container fade-in-section"> {# Replaced Bootstrap grid/card with our custom form-container #}
+    <h2>Add New Expense</h2> {# This H2 will pick up the form-container h2 style #}
 
-                    <form method="POST">
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Description</label>
-                            <input type="text" class="form-control" id="description" name="description" required placeholder="e.g., Groceries from supermarket">
-                        </div>
-                        <div class="mb-3">
-                            <label for="amount" class="form-label">Amount (₹)</label>
-                            <input type="number" step="0.01" min="0.01" class="form-control" id="amount" name="amount" required placeholder="e.g., 500.25">
-                        </div>
-                        <div class="mb-3">
-                            <label for="category_id" class="form-label">Expense Category</label>
-                            <select class="form-select" id="category_id" name="category_id" required>
-                                <option value="">Select an Expense Category</option>
-                                {# Loop for categories - uncomment when 'categories' are passed #}
-                                {% for cat in categories %}
-                                    <option value="{{ cat.id }}">{{ cat.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="date" class="form-label">Date</label>
-                            <input type="date" class="form-control" id="date" name="date" value="{{ today.strftime('%Y-%m-%d') if today else '' }}" required>
-                        </div>
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary-expense btn-lg">Add Expense</button>
-                            <a href="{{ url_for('list_transactions') }}" class="btn btn-outline-secondary-cancel btn-lg">Cancel</a>
-                        </div>
-                    </form>
-                </div>
+    {# Flash Messages - Using our custom flashes and alert classes #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flashes">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
             </div>
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <div class="form-group"> {# Replaced mb-3 with custom form-group #}
+            <label for="description">Description:</label> {# Custom label styling is applied via form-group label #}
+            <input type="text" class="form-control" id="description" name="description" required aria-label="Expense description"> {# Custom form-control #}
         </div>
-    </div>
+        <div class="form-group"> {# Replaced mb-3 with custom form-group #}
+            <label for="amount">Amount (₹):</label> {# Corrected Rupee symbol #}
+            <input type="number" step="0.01" min="0.01" class="form-control" id="amount" name="amount" required aria-label="Expense amount"> {# Custom form-control #}
+        </div>
+        <div class="form-group"> {# Replaced mb-3 with custom form-group #}
+            <label for="category_id">Expense Category:</label>
+            <select class="form-control" id="category_id" name="category_id" required aria-label="Select an expense category"> {# Custom form-control for select #}
+                <option value="">Select an Expense Category</option>
+                {% for cat in categories %}
+                    <option value="{{ cat.id }}">{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+            {# Optional: Add small text if no categories are found, similar to add_budget #}
+            {% if not categories %}
+                <p class="form-help-text text-danger mt-2">
+                    No expense categories found. Please <a href="{{ url_for('add_category') }}">add some categories</a> first.
+                </p>
+            {% endif %}
+        </div>
+        <div class="form-group"> {# Replaced mb-3 with custom form-group #}
+            <label for="date">Date (Month/Day/Year):</label>
+            <input type="date" class="form-control" id="date" name="date" value="{{ today.strftime('%Y-%m-%d') }}" required aria-label="Expense date"> {# Custom form-control #}
+        </div>
+        <div class="form-buttons"> {# Replaced d-grid gap-2 with custom form-buttons #}
+            <button type="submit" class="button danger">Add Expense</button> {# Custom danger button #}
+            <a href="{{ url_for('list_transactions') }}" class="button secondary">Cancel</a> {# Custom secondary button #}
+        </div>
+    </form>
 </div>
 {% endblock %}
