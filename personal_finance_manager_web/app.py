@@ -5,16 +5,26 @@ from flask import Flask, render_template, request, flash, redirect, url_for, Blu
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, timedelta, date, UTC # Added UTC here
+from datetime import datetime, timedelta, date
 from sqlalchemy import func
 from decimal import Decimal
 from flask_migrate import Migrate
+
+# --- Imports for Plotting ---
+import plotly.express as px
+import plotly.graph_objects as go
+import pandas as pd
+import matplotlib.pyplot as plt
+import io
+import base64
+# --- End Plotting Imports ---
+
 
 # --- Configuration ---
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'your_super_secret_key_here' # USE A STRONG, RANDOM KEY IN PRODUCTION
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'postgresql://postgres:newceo@localhost:5432/finance_db' # Corrected: '@' in password is URL-encoded to '%40'
+        'postgresql://postgres:Next@123@localhost:5432/finance_db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = os.environ.get('FLASK_DEBUG') == '1'
 
@@ -26,10 +36,8 @@ migrate = Migrate()
 class Base(db.Model):
     __abstract__ = True
     id = db.Column(db.Integer, primary_key=True)
-    # Corrected: Use datetime.now(UTC) and lambda for default
-    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC))
-    # Corrected: Use datetime.now(UTC) and lambda for default and onupdate
-    updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class User(UserMixin, Base):
     __tablename__ = 'users'
@@ -69,8 +77,7 @@ class Transaction(Base):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     amount = db.Column(db.Numeric(10, 2), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    # Corrected: Use datetime.now(UTC).date() and lambda for default
-    date = db.Column(db.Date, nullable=False, default=lambda: datetime.now(UTC).date())
+    date = db.Column(db.Date, nullable=False, default=datetime.utcnow().date())
     type = db.Column(db.String(10), nullable=False) # 'income' or 'expense'
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
 
@@ -82,8 +89,7 @@ class Budget(Base):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     category_name = db.Column(db.String(100), nullable=False) # Storing name as string
     amount = db.Column(db.Numeric(10, 2), nullable=False)
-    # Corrected: Use datetime.now(UTC).date() and lambda for default
-    start_date = db.Column(db.Date, nullable=False, default=lambda: datetime.now(UTC).date())
+    start_date = db.Column(db.Date, nullable=False, default=datetime.utcnow().date())
     end_date = db.Column(db.Date, nullable=True)
     __table_args__ = (db.UniqueConstraint('user_id', 'category_name', 'start_date', name='_user_category_start_date_uc'),)
 
@@ -104,11 +110,11 @@ def create_app():
 
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
+        return db.session.get(User, int(user_id))
 
     with app.app_context():
         # db.create_all() # UNCOMMENT THIS ONLY ONCE FOR INITIAL TABLE CREATION IF NOT USING MIGRATIONS, THEN COMMENT OUT AGAIN
-        db.create_all()  # Ensure all tables are created
+        pass
 
     # --- Routes ---
 
@@ -410,7 +416,7 @@ def create_app():
                 Category.name == budget.category_name,
                 Transaction.type == 'expense',
                 Transaction.date >= current_month_start, # Calculating spent for current month
-                Transaction.date < next_month_start       # within the budget's category
+                Transaction.date < next_month_start      # within the budget's category
             ).scalar() or Decimal('0.00')
 
             remaining = budget.amount - spent_on_budget_category
@@ -422,7 +428,7 @@ def create_app():
                 'start_date': budget.start_date,
                 'end_date': budget.end_date,
                 'spent': spent_on_budget_category, # Calculated spent for current month
-                'remaining': remaining,            # Calculated remaining for current month
+                'remaining': remaining,           # Calculated remaining for current month
                 'status': 'Under Budget' if remaining >= 0 else 'Over Budget'
             })
 
@@ -602,7 +608,7 @@ def create_app():
         expense_categories = Category.query.filter_by(user_id=user_id, type='expense').order_by(Category.name).all()
         income_categories = Category.query.filter_by(user_id=user_id, type='income').order_by(Category.name).all()
 
-        # Calculate category-wise spending/income for the SELECTED month
+        # Calculate category-wise spending/income for the SELECTED month (for the table)
         category_data = []
         for category in expense_categories + income_categories:
             category_total = db.session.query(func.sum(Transaction.amount)).filter(
@@ -646,34 +652,93 @@ def create_app():
                 'status': 'Under Budget' if remaining >= 0 else 'Over Budget'
             })
 
-        # Logic to fetch monthly_data for the table (e.g., for the past 12 months from the selected month)
+        # Logic to fetch monthly_data for the table and trend chart (e.g., for the past 12 months from the selected month)
         monthly_data = []
         for i in range(12): # Loop for the last 12 months
-            # Calculate the month for the current iteration
-            current_iter_month = (display_start_of_month - timedelta(days=30*i)).replace(day=1)
-            next_iter_month = (current_iter_month + timedelta(days=32)).replace(day=1)
+            # Calculate the month for the current iteration (going backwards)
+            # Use timedelta to move backward from the selected month
+            calc_date = display_start_of_month - pd.DateOffset(months=i)
+            current_iter_month_start = calc_date.date().replace(day=1)
+            next_iter_month_start = (current_iter_month_start + timedelta(days=32)).replace(day=1)
 
             month_income = db.session.query(func.sum(Transaction.amount)).filter(
                 Transaction.user_id == user_id,
                 Transaction.type == 'income',
-                Transaction.date >= current_iter_month,
-                Transaction.date < next_iter_month
+                Transaction.date >= current_iter_month_start,
+                Transaction.date < next_iter_month_start
             ).scalar() or Decimal('0.00')
 
             month_expense = db.session.query(func.sum(Transaction.amount)).filter(
                 Transaction.user_id == user_id,
                 Transaction.type == 'expense',
-                Transaction.date >= current_iter_month,
-                Transaction.date < next_iter_month
+                Transaction.date >= current_iter_month_start,
+                Transaction.date < next_iter_month_start
             ).scalar() or Decimal('0.00')
 
             monthly_data.append({
-                'month': current_iter_month.strftime('%B %Y'), # Format for display
+                'month': current_iter_month_start.strftime('%B %Y'), # Format for display
                 'income': month_income,
                 'expense': month_expense,
                 'net': month_income - month_expense
             })
         monthly_data.reverse() # Display in chronological order (oldest first)
+
+        # --- Plotly Graph Section: Expense Breakdown Pie Chart ---
+        expense_breakdown_chart_data = []
+        for category in expense_categories:
+            category_expense_total = db.session.query(func.sum(Transaction.amount)).filter(
+                Transaction.user_id == user_id,
+                Transaction.category_id == category.id,
+                Transaction.type == 'expense',
+                Transaction.date >= display_start_of_month,
+                Transaction.date < display_next_month
+            ).scalar() or Decimal('0.00')
+            
+            if category_expense_total > 0: # Only include categories with actual expenses
+                expense_breakdown_chart_data.append({
+                    'category': category.name,
+                    'amount': float(category_expense_total) # Convert Decimal to float for Plotly
+                })
+
+        expense_pie_chart_html = None
+        if expense_breakdown_chart_data:
+            df_expenses = pd.DataFrame(expense_breakdown_chart_data)
+            fig_pie = px.pie(
+                df_expenses, 
+                values='amount', 
+                names='category', 
+                title=f'Expense Breakdown for {display_start_of_month.strftime("%B %Y")}',
+                hole=0.3 # Creates a donut chart
+            )
+            fig_pie.update_traces(textposition='inside', textinfo='percent+label')
+            fig_pie.update_layout(showlegend=True, margin=dict(t=50, b=0, l=0, r=0)) # Adjust margins
+            expense_pie_chart_html = fig_pie.to_html(full_html=False, include_plotlyjs='cdn')
+        # --- End Plotly Graph Section ---
+
+
+        # --- Plotly Graph Section: Income vs Expense Trend (Last 12 Months) ---
+        income_expense_trend_chart_html = None
+        if monthly_data: # monthly_data should contain 'month', 'income', 'expense'
+            # Convert monthly_data to a DataFrame
+            df_trend = pd.DataFrame(monthly_data)
+            # Convert 'month' string to datetime objects for proper sorting and plotting
+            df_trend['month_dt'] = pd.to_datetime(df_trend['month'], format='%B %Y')
+            df_trend = df_trend.sort_values(by='month_dt') # Ensure data is sorted by month
+
+            fig_trend = go.Figure()
+            fig_trend.add_trace(go.Scatter(x=df_trend['month'], y=df_trend['income'], mode='lines+markers', name='Income', line=dict(color='green')))
+            fig_trend.add_trace(go.Scatter(x=df_trend['month'], y=df_trend['expense'], mode='lines+markers', name='Expense', line=dict(color='red')))
+
+            fig_trend.update_layout(
+                title=f'Income vs. Expense Trend (Last 12 Months from {display_start_of_month.strftime("%B %Y")})',
+                xaxis_title='Month',
+                yaxis_title='Amount (₹)',
+                hovermode='x unified',
+                margin=dict(t=50, b=0, l=0, r=0)
+            )
+            income_expense_trend_chart_html = fig_trend.to_html(full_html=False, include_plotlyjs='cdn')
+        # --- End Plotly Graph Section ---
+
 
         return render_template(
             'reports/monthly_summary_report.html',
@@ -686,7 +751,10 @@ def create_app():
             monthly_data=monthly_data,          
             current_year=current_year,          
             selected_year=selected_year,        
-            selected_month=selected_month       
+            selected_month=selected_month,
+            # --- Pass the Plotly charts HTML to the template ---
+            expense_pie_chart_html=expense_pie_chart_html,
+            income_expense_trend_chart_html=income_expense_trend_chart_html
         )
 
     @app.route('/reports/expense_breakdown')
@@ -700,86 +768,120 @@ def create_app():
 
         # 2. Get selected filters from request args, default to current month/year, no specific category
         selected_month = request.args.get('month', type=int, default=today.month)
-        selected_year = request.args.get('year', type=int, default=current_year)
-        
-        # 3. Handle category filtering
-        selected_category_name = request.args.get('category', default='all')
-        
-        # Calculate the start and end dates for the displayed month's data based on selection
+        selected_year = request.args.get('year', type=int, default=today.year)
+        selected_expense_category_id = request.args.get('expense_category_id', type=int) # Can be None if not selected
+
+        # 3. Define the date range for filtering based on selected month/year
         try:
-            display_start_of_month = date(selected_year, selected_month, 1)
-            display_next_month = (display_start_of_month + timedelta(days=32)).replace(day=1)
+            filter_start_date = date(selected_year, selected_month, 1)
+            filter_end_date = (filter_start_date + timedelta(days=32)).replace(day=1) - timedelta(days=1)
         except ValueError:
+            # Fallback for invalid month/year combinations
             flash("Invalid date selection. Showing current month's breakdown.", "warning")
-            display_start_of_month = today.replace(day=1)
-            display_next_month = (display_start_of_month + timedelta(days=32)).replace(day=1)
+            filter_start_date = today.replace(day=1)
+            filter_end_date = (filter_start_date + timedelta(days=32)).replace(day=1) - timedelta(days=1)
             selected_month = today.month
             selected_year = today.year
 
-        # Fetch expense categories for the dropdown filter
-        expense_categories_for_filter = Category.query.filter_by(user_id=user_id, type='expense').order_by(Category.name).all()
+        # 4. Fetch all expense categories for the dropdown
+        all_expense_categories = Category.query.filter_by(user_id=user_id, type='expense').order_by(Category.name).all()
 
-        # Build query for expenses
-        expenses_query = db.session.query(Transaction).join(Category).filter(
+        # 5. Build the query for transactions
+        transactions_query = Transaction.query.filter(
             Transaction.user_id == user_id,
             Transaction.type == 'expense',
-            Transaction.date >= display_start_of_month,
-            Transaction.date < display_next_month
+            Transaction.date >= filter_start_date,
+            Transaction.date <= filter_end_date
         )
 
-        # Apply category filter if selected
-        if selected_category_name and selected_category_name != 'all':
-            expenses_query = expenses_query.filter(Category.name == selected_category_name)
-        
-        all_expenses = expenses_query.order_by(Transaction.date.desc()).all()
+        # 6. Calculate category-wise totals
+        expense_breakdown_data = []
+        total_breakdown_expense = Decimal('0.00')
 
-        # Calculate total expense for the selected filters
-        total_filtered_expense = db.session.query(func.sum(Transaction.amount)).join(Category).filter(
-            Transaction.user_id == user_id,
-            Transaction.type == 'expense',
-            Transaction.date >= display_start_of_month,
-            Transaction.date < display_next_month
-        )
-        if selected_category_name and selected_category_name != 'all':
-            total_filtered_expense = total_filtered_expense.filter(Category.name == selected_category_name)
-        
-        total_filtered_expense = total_filtered_expense.scalar() or Decimal('0.00')
+        if selected_expense_category_id:
+            # If a specific category is selected, only show that category's data
+            specific_category = Category.query.get(selected_expense_category_id)
+            if specific_category and specific_category.user_id == user_id and specific_category.type == 'expense':
+                total_spent = transactions_query.filter(
+                    Transaction.category_id == selected_expense_category_id
+                ).with_entities(func.sum(Transaction.amount)).scalar() or Decimal('0.00')
+                expense_breakdown_data.append({
+                    'name': specific_category.name,
+                    'total_spent': total_spent
+                })
+                total_breakdown_expense = total_spent
+        else:
+            # Otherwise, group by all expense categories
+            for category in all_expense_categories:
+                # Get total spent for this category within the filtered date range
+                spent_in_category = transactions_query.filter(
+                    Transaction.category_id == category.id
+                ).with_entities(func.sum(Transaction.amount)).scalar() or Decimal('0.00')
 
+                if spent_in_category > 0: # Only add categories with expenses
+                    expense_breakdown_data.append({
+                        'name': category.name,
+                        'total_spent': spent_in_category
+                    })
+                total_breakdown_expense += spent_in_category
 
-        # Prepare data for charts (e.g., category-wise breakdown for the selected month)
-        category_breakdown_query = db.session.query(
-            Category.name, 
-            func.sum(Transaction.amount)
-        ).join(Transaction).filter(
-            Transaction.user_id == user_id,
-            Transaction.type == 'expense',
-            Transaction.date >= display_start_of_month,
-            Transaction.date < display_next_month
-        )
-        if selected_category_name and selected_category_name != 'all':
-            category_breakdown_query = category_breakdown_query.filter(Category.name == selected_category_name)
-        
-        category_breakdown_data = category_breakdown_query.group_by(Category.name).all()
+        # 7. Sort the breakdown data (e.g., by total spent descending)
+        expense_breakdown_data.sort(key=lambda x: x['total_spent'], reverse=True)
 
-        chart_labels = [row[0] for row in category_breakdown_data]
-        chart_values = [float(row[1]) for row in category_breakdown_data] # Convert Decimal to float for JS charting
+        # --- Matplotlib Graph Section: Expense Breakdown Bar Chart ---
+        expense_bar_chart_b64 = None
+        if expense_breakdown_data:
+            categories = [d['name'] for d in expense_breakdown_data]
+            amounts = [float(d['total_spent']) for d in expense_breakdown_data] # Convert Decimal to float
+
+            fig, ax = plt.subplots(figsize=(10, 6)) # Adjust figure size as needed
+            ax.bar(categories, amounts, color='skyblue')
+            ax.set_ylabel('Amount (₹)')
+            ax.set_title(f'Expense Breakdown ({filter_start_date.strftime("%B %Y")})')
+            plt.xticks(rotation=45, ha='right') # Rotate labels if they overlap
+            plt.tight_layout() # Adjust layout to prevent labels from being cut off
+
+            # Save plot to a BytesIO object (in-memory file)
+            buffer = io.BytesIO()
+            plt.savefig(buffer, format='png', bbox_inches='tight')
+            buffer.seek(0)
+            plt.close(fig) # Close the figure to free up memory
+
+            # Encode to Base64
+            expense_bar_chart_b64 = base64.b64encode(buffer.getvalue()).decode()
+        # --- End Matplotlib Graph Section ---
+
 
         return render_template(
             'reports/expense_breakdown_report.html',
-            all_expenses=all_expenses,
-            total_filtered_expense=total_filtered_expense,
-            categories_for_filter=expense_categories_for_filter, # For the dropdown
-            selected_category_name=selected_category_name,
-            selected_month=selected_month,
-            selected_year=selected_year,
-            current_year=current_year, # For year dropdown range
-            chart_labels=chart_labels,
-            chart_values=chart_values
+            current_month=filter_start_date, # This reflects the start of the selected month
+            total_breakdown_expense=total_breakdown_expense, # Total for the period and filters
+            expense_breakdown_data=expense_breakdown_data,   # Category-wise breakdown
+            current_year=current_year,                       # For the year dropdown range
+            selected_year=selected_year,                     # To pre-select year in dropdown
+            selected_month=selected_month,                   # To pre-select month in dropdown
+            all_expense_categories=all_expense_categories,   # To populate category dropdown
+            selected_expense_category_id=selected_expense_category_id, # To pre-select category
+            # --- Pass the Base64 image to the template ---
+            expense_bar_chart_b64=expense_bar_chart_b64
         )
+
+    # --- Error Handlers ---
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('errors/404.html'), 404
+
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        db.session.rollback()
+        return render_template('errors/500.html'), 500
 
     return app
 
-# This block is usually in a run.py or wsgi.py, but for simple apps it's fine here
+# --- Run the application directly if this script is executed ---
 if __name__ == '__main__':
+    from dotenv import load_dotenv
+    load_dotenv()
+
     app = create_app()
     app.run(debug=True)
