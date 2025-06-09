@@ -2,475 +2,104 @@
 
 {% block title %}Expense Breakdown Report{% endblock %}
 
-{% block head %}
-    {{ super() }}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
-    <style>
-        /* CSS Variables are assumed to be defined in base.html */
-        /* If they are not, uncomment and place them here:
-        :root {
-            --background-color: #1a1a2e;
-            --card-background: #16213e;
-            --text-color: #e0e0e0;
-            --heading-color: #e0e0e0;
-            --accent-color: #0f3460;
-            --primary-button-bg: #e94560;
-            --primary-button-hover-bg: #c93550;
-            --secondary-button-bg: #533483;
-            --secondary-button-hover-bg: #432a6a;
-            --border-color: #0f3460;
-            --shadow-color: rgba(0, 0, 0, 0.4);
-            --form-element-bg: #0e162f;
-            --form-border: #0f3460;
-            --form-focus-border: #e94560;
-
-            --flash-success-bg: #28a745;
-            --flash-success-color: #ffffff;
-            --flash-error-bg: #dc3545;
-            --flash-error-color: #ffffff;
-            --flash-info-bg: #007bff;
-            --flash-info-color: #ffffff;
-            --flash-warning-bg: #ffc107;
-            --flash-warning-color: #343a40;
-        }
-        */
-
-        .container {
-            padding-top: 3rem;
-            padding-bottom: 3rem;
-        }
-
-        .fade-in-section {
-            animation: fadeIn 0.8s ease-out forwards;
-            opacity: 0;
-        }
-
-        .card {
-            background-color: var(--card-background);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 10px 30px var(--shadow-color);
-            color: var(--text-color);
-        }
-
-        .card-header {
-            background-color: var(--card-background);
-            border-bottom: 1px solid var(--border-color);
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
-            padding: 1.5rem 1rem;
-        }
-
-        .card-header h2 {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--heading-color);
-            margin-bottom: 0;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .card-body {
-            padding: 2.5rem;
-        }
-
-        /* Form styling */
-        .report-filter-form {
-            background-color: var(--form-element-bg); /* Use a slightly different dark background for the form */
-            border: 1px solid var(--form-border);
-            border-radius: 10px;
-            padding: 1.8rem;
-            margin-bottom: 2.5rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .report-filter-form .form-label {
-            color: var(--text-color);
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-            font-size: 1.05rem;
-        }
-
-        .report-filter-form .form-select,
-        .report-filter-form .form-control { /* Assuming you might use form-control elsewhere */
-            background-color: var(--form-element-bg);
-            border: 1px solid var(--form-border);
-            color: var(--text-color);
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            appearance: none; /* Remove default arrow for custom styling */
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23e0e0e0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 16px 12px;
-        }
-
-        .report-filter-form .form-select:focus,
-        .report-filter-form .form-control:focus {
-            border-color: var(--form-focus-border);
-            box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25); /* Glow effect from accent color */
-            background-color: var(--form-element-bg); /* Keep background consistent */
-            color: var(--text-color);
-        }
-
-        .report-filter-form .form-select option {
-            background-color: var(--form-element-bg);
-            color: var(--text-color);
-        }
-        .report-filter-form .form-select option:hover {
-            background-color: var(--accent-color); /* Highlight on hover in dropdown */
-        }
-
-
-        /* Filter button styling */
-        .btn-filter-report {
-            background-image: linear-gradient(45deg, var(--accent-color) 0%, var(--secondary-button-bg) 100%);
-            border: none;
-            color: white;
-            padding: 0.8rem 2rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 30px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease-in-out;
-        }
-
-        .btn-filter-report:hover {
-            background-position: 100% 0;
-            transform: translateY(-3px) scale(1.01);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-        }
-
-        /* Total Expenses heading */
-        h4.mb-3 {
-            font-family: 'Montserrat', sans-serif;
-            color: var(--heading-color);
-            font-size: 1.8rem;
-            margin-bottom: 2rem !important;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        h4.mb-3 .expense-total-amount {
-            color: var(--primary-button-bg); /* Use the red accent for total expenses */
-            font-family: 'Roboto Mono', monospace;
-            font-size: 2rem; /* Larger for impact */
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Table styling */
-        .table {
-            color: var(--text-color);
-            background-color: var(--form-element-bg); /* Slightly darker background for table rows */
-            border-radius: 8px;
-            overflow: hidden; /* Ensures border-radius applies to corners */
-            border: 1px solid var(--border-color);
-        }
-
-        .table-responsive {
-            margin-top: 2rem;
-        }
-
-        .table th, .table td {
-            padding: 1rem 1.2rem;
-            vertical-align: middle;
-            border-top: 1px solid rgba(224, 224, 224, 0.08); /* Lighter border for dark theme */
-        }
-
-        .table thead th {
-            background-color: var(--accent-color); /* Header background */
-            color: white;
-            font-weight: 600;
-            font-family: 'Montserrat', sans-serif;
-            border-bottom: 2px solid var(--border-color);
-        }
-
-        .table tbody tr:hover {
-            background-color: rgba(224, 224, 224, 0.05); /* Lighter hover for dark theme */
-        }
-
-        .table caption {
-            color: var(--nav-link-color); /* Softer color for caption */
-            font-size: 1.05rem;
-            margin-bottom: 0.8rem;
-        }
-
-        .text-end {
-            text-align: end !important;
-        }
-
-        .text-danger {
-            color: var(--primary-button-bg) !important; /* Ensure the red accent is used */
-        }
-
-        .text-success {
-            color: var(--flash-success-bg) !important; /* Ensure green is used */
-        }
-
-        /* Flash message styling (overrides default Bootstrap for dark theme) */
-        .alert {
-            margin-top: 1.5rem;
-            margin-bottom: 1.5rem;
-            border-radius: 8px;
-            font-weight: 500;
-            animation: fadeIn 0.5s ease-out;
-            border: none; /* Remove default border */
-        }
-
-        .alert-success {
-            background-color: var(--flash-success-bg);
-            color: var(--flash-success-color);
-        }
-
-        .alert-info {
-            background-color: var(--flash-info-bg);
-            color: var(--flash-info-color);
-        }
-
-        .alert-warning {
-            background-color: var(--flash-warning-bg);
-            color: var(--flash-warning-color);
-        }
-
-        .alert-danger {
-            background-color: var(--flash-error-bg);
-            color: var(--flash-error-color);
-        }
-
-        .alert .btn-close {
-            color: white;
-            opacity: 0.8;
-            filter: invert(1); /* Invert color for dark theme */
-            font-size: 1rem;
-            padding: 0.75rem 0.75rem;
-            background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/%3e%3c/svg%3e") center/1em auto no-repeat;
-            border: none;
-        }
-        .alert .btn-close:hover {
-            opacity: 1;
-        }
-
-        /* No data message */
-        .no-data-message {
-            color: var(--nav-link-color);
-            font-style: italic;
-            padding: 2rem;
-            text-align: center;
-        }
-
-        /* Action button at bottom */
-        .btn-outline-info {
-            background-color: transparent;
-            color: var(--flash-info-bg); /* Use info blue for this button */
-            border: 2px solid var(--flash-info-bg);
-            padding: 0.9rem 2.2rem;
-            font-size: 1.15rem;
-            font-weight: 600;
-            border-radius: 30px;
-            transition: all 0.3s ease;
-        }
-
-        .btn-outline-info:hover {
-            background-color: var(--flash-info-bg);
-            color: white;
-            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4); /* Shadow on hover */
-            transform: translateY(-2px);
-        }
-
-
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 991.98px) {
-            .card-header h2 {
-                font-size: 2rem;
-            }
-            .card-body {
-                padding: 2rem;
-            }
-            .report-filter-form {
-                padding: 1.5rem;
-            }
-            h4.mb-3 {
-                font-size: 1.6rem;
-            }
-            h4.mb-3 .expense-total-amount {
-                font-size: 1.8rem;
-            }
-            .btn-filter-report, .btn-outline-info {
-                font-size: 1rem;
-                padding: 0.7rem 1.8rem;
-            }
-            .table th, .table td {
-                padding: 0.8rem 1rem;
-            }
-        }
-
-        @media (max-width: 767.98px) {
-            .container {
-                padding-top: 2rem;
-                padding-bottom: 2rem;
-            }
-            .card-header h2 {
-                font-size: 1.8rem;
-            }
-            .card-body {
-                padding: 1.5rem;
-            }
-            .report-filter-form {
-                padding: 1.2rem;
-            }
-            .report-filter-form .form-label {
-                font-size: 0.95rem;
-            }
-            .report-filter-form .form-select,
-            .report-filter-form .form-control {
-                padding: 0.6rem 0.8rem;
-                font-size: 0.9rem;
-            }
-            h4.mb-3 {
-                font-size: 1.4rem;
-                flex-direction: column; /* Stack on small screens */
-                align-items: flex-start;
-            }
-            h4.mb-3 .expense-total-amount {
-                font-size: 1.5rem;
-                margin-top: 0.5rem;
-            }
-            .d-md-flex {
-                flex-direction: column; /* Stack buttons */
-            }
-            .d-grid .btn {
-                width: 100%;
-                margin-bottom: 0.5rem;
-            }
-            .table th, .table td {
-                font-size: 0.9rem;
-            }
-            .table caption {
-                font-size: 0.9rem;
-            }
-        }
-    </style>
-{% endblock %}
-
 {% block content %}
-<div class="container mt-5 mb-5 fade-in-section">
-    <div class="row justify-content-center">
-        <div class="col-md-10 col-lg-10">
-            <div class="card">
-                <div class="card-header text-center">
-                    <h2>Expense Breakdown Report</h2>
-                </div>
-                <div class="card-body">
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
+<div class="report-container fade-in-section"> {# Added fade-in-section for consistency #}
+    <h2 class="report-title">Expense Breakdown Report</h2>
+
+    {# Month/Year Selection Form #}
+    <div class="report-card filter-card">
+        <div class="report-card-header">
+            <h5>Select Month & Year</h5>
+        </div>
+        <div class="report-card-body">
+            <form method="GET" action="{{ url_for('expense_breakdown_report') }}">
+                <div class="filter-form-grid">
+                    <div class="form-group">
+                        <label for="month_select">Month:</label>
+                        <select class="form-control" id="month_select" name="month">
+                            {% for i in range(1, 13) %}
+                                <option value="{{ i }}" {% if i == selected_month %}selected{% endif %}>
+                                    {{ (current_month.replace(day=1, month=i)).strftime('%B') }}
+                                </option>
                             {% endfor %}
-                        {% endif %}
-                    {% endwith %}
-
-                    <form method="GET" action="{{ url_for('expense_breakdown_report') }}" class="report-filter-form">
-                        <input type="hidden" name="type" value="expense_breakdown">
-                        <div class="row g-3 align-items-end">
-                            <div class="col-md-4">
-                                <label for="month" class="form-label">Month</label>
-                                <select class="form-select" id="month" name="month">
-                                    <option value="">All Months</option>
-                                    {# Loop for months - uncomment when 'selected_month' is passed #}
-                                    {% for i in range(1, 13) %}
-                                        <option value="{{ i }}" {% if selected_month == i %}selected{% endif %}>{{ '{:02d}'.format(i) }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="year" class="form-label">Year</label>
-                                <select class="form-select" id="year" name="year">
-                                    <option value="">All Years</option>
-                                    {# Loop for years - uncomment when 'current_year' and 'selected_year' are passed #}
-                                    {% for y in range(current_year - 5, current_year + 2) %} {# Allow selection of current year + 1 #}
-                                        <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="expense_category_id" class="form-label">Specific Category (Optional)</label>
-                                <select class="form-select" id="expense_category_id" name="expense_category_id">
-                                    <option value="">All Expense Categories</option>
-                                    {# Loop for categories - uncomment when 'all_expense_categories' and 'selected_expense_category_id' are passed #}
-                                    {% for cat in all_expense_categories %}
-                                        <option value="{{ cat.id }}" {% if selected_expense_category_id == cat.id %}selected{% endif %}>
-                                            {{ cat.name }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-12 text-end">
-                                <button type="submit" class="btn btn-filter-report">Filter Report</button>
-                            </div>
-                        </div>
-                    </form>
-
-                    <h4 class="mb-3">
-                        <span>Total Expenses for Period:</span>
-                        <span class="expense-total-amount">₹{{ "%.2f"|format(total_breakdown_expense | default(0.00) | float) }}</span>
-                    </h4>
-
-                    {% if expense_breakdown_data %}
-                        <div class="table-responsive">
-                            <table class="table table-hover table-striped caption-top">
-                                <caption class="text-start mb-2">Breakdown of expenses by category for the selected period.</caption>
-                                <thead class="table-dark"> {# Changed to table-dark for better contrast #}
-                                    <tr>
-                                        <th>Expense Category</th>
-                                        <th class="text-end">Total Spent (₹)</th>
-                                        <th class="text-end">Percentage</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for item in expense_breakdown_data %}
-                                    <tr>
-                                        <td class="fw-bold">{{ item.name }}</td>
-                                        <td class="text-end text-danger">₹{{ "%.2f"|format(item.total_spent | float) }}</td>
-                                        <td class="text-end">
-                                            {% if total_breakdown_expense > 0 %}
-                                                {{ "%.2f"|format((item.total_spent / total_breakdown_expense * 100) | float) }}%
-                                            {% else %}
-                                                0.00%
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <p class="no-data-message">
-                            No expense data found for the selected criteria. Try adjusting your filters.
-                        </p>
-                    {% endif %}
-
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                        <a href="{{ url_for('monthly_summary_report') }}" class="btn btn-outline-info">View Monthly Summary</a>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="year_select">Year:</label>
+                        <select class="form-control" id="year_select" name="year">
+                            {% for year_val in range(current_year - 5, current_year + 2) %}
+                                <option value="{{ year_val }}" {% if year_val == selected_year %}selected{% endif %}>
+                                    {{ year_val }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="filter-button-group">
+                        <button type="submit" class="button primary full-width">Apply Filter</button>
                     </div>
                 </div>
+            </form>
+        </div>
+    </div>
+
+    {# Report Summary Card (Total Expenses) #}
+    {% if total_expenses is not none %} {# Only show if total_expenses is available #}
+    <div class="summary-report-grid-single"> {# New grid for a single summary card #}
+        <div class="summary-stat-card danger"> {# Reusing summary card style for expenses #}
+            <div class="summary-stat-header">Total Expenses ({{ current_month.strftime('%B %Y') }})</div>
+            <div class="summary-stat-body">
+                <div class="summary-stat-amount">₹{{ "{:,.2f}".format(total_expenses) }}</div>
             </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Expense Breakdown Chart #}
+    <div class="chart-grid-single"> {# New grid for a single chart #}
+        <div class="report-card chart-card">
+            <div class="report-card-header">
+                <h5>Expense Distribution by Category</h5>
+            </div>
+            <div class="report-card-body chart-body"> {# Added chart-body class for specific chart padding #}
+                {% if expense_breakdown_chart_html %}
+                    {{ expense_breakdown_chart_html | safe }}
+                {% else %}
+                    <p class="empty-chart-message">No expense data for the selected month to display chart.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# Expense Breakdown Table #}
+    <div class="report-card table-card">
+        <div class="report-card-header">
+            <h5>Detailed Expense Breakdown ({{ current_month.strftime('%B %Y') }})</h5>
+        </div>
+        <div class="report-card-body">
+            {% if expense_breakdown_data %}
+            <div class="table-responsive-wrapper">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th class="text-right">Total Amount (₹)</th>
+                            <th class="text-right">Percentage (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in expense_breakdown_data %}
+                        <tr>
+                            <td>{{ item.category }}</td>
+                            <td class="text-right">₹{{ "{:,.2f}".format(item.total_amount) }}</td>
+                            <td class="text-right">{{ "{:,.2f}".format(item.percentage) }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="empty-state-message">No detailed expense data for the selected month.</p>
+            {% endif %}
         </div>
     </div>
 </div>
