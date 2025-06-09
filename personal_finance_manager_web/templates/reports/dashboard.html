@@ -4,363 +4,50 @@
 
 {% block head %}
     {{ super() }}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
-    <style>
-        /* CSS Variables are assumed to be defined in base.html */
-        /* If they are not, uncomment and place them here:
-        :root {
-            --background-color: #1a1a2e;
-            --card-background: #16213e;
-            --text-color: #e0e0e0;
-            --heading-color: #e0e0e0;
-            --accent-color: #0f3460;
-            --primary-button-bg: #e94560;
-            --primary-button-hover-bg: #c93550;
-            --secondary-button-bg: #533483;
-            --secondary-button-hover-bg: #432a6a;
-            --border-color: #0f3460;
-            --shadow-color: rgba(0, 0, 0, 0.4);
-            --form-element-bg: #0e162f;
-            --form-border: #0f3460;
-            --form-focus-border: #e94560;
-
-            --flash-success-bg: #28a745;
-            --flash-success-color: #ffffff;
-            --flash-error-bg: #dc3545;
-            --flash-error-color: #ffffff;
-            --flash-info-bg: #007bff;
-            --flash-info-color: #ffffff;
-            --flash-warning-bg: #ffc107;
-            --flash-warning-color: #343a40;
-        }
-        */
-
-        /* Container padding adjustments */
-        .container {
-            padding-top: 50px; /* More space from navbar */
-            padding-bottom: 50px;
-        }
-
-        /* Welcome section styling */
-        .welcome-section {
-            text-align: center;
-            margin-bottom: 3.5rem; /* More space below welcome */
-            animation: fadeIn 1s ease-out; /* Fade in animation */
-            color: var(--text-color); /* Ensure text is visible */
-        }
-
-        .welcome-section h2 {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 3.2rem; /* Larger and bolder for main welcome */
-            font-weight: 700;
-            color: var(--heading-color); /* Use heading color */
-            margin-bottom: 0.8rem;
-            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            letter-spacing: 1px;
-        }
-
-        .welcome-section p {
-            font-family: 'Roboto', sans-serif;
-            font-size: 1.25rem; /* Larger paragraph */
-            color: var(--nav-link-color); /* Lighter grey for description */
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            line-height: 1.6;
-        }
-
-        /* Dashboard summary and quick actions cards */
-        .dashboard-card {
-            background-color: var(--card-background);
-            border: 1px solid var(--border-color);
-            border-radius: 12px; /* Consistent with other cards */
-            box-shadow: 0 10px 30px var(--shadow-color);
-            padding: 2.5rem; /* More padding inside cards */
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-        }
-
-        .dashboard-card:hover {
-            transform: translateY(-5px); /* Lift effect on hover */
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6); /* More pronounced shadow on hover */
-        }
-
-        .dashboard-card h3 {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 2rem; /* Larger heading for card titles */
-            font-weight: 600;
-            color: var(--heading-color);
-            margin-bottom: 1.8rem; /* More space below heading */
-            border-bottom: 2px solid var(--border-color); /* Subtle separator */
-            padding-bottom: 1rem;
-            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Summary card specific styles */
-        .summary-item {
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 0;
-            border-bottom: 1px dashed rgba(224, 224, 224, 0.1); /* Subtle dashed line */
-        }
-        .summary-item:last-child {
-            border-bottom: none; /* No border for the last item */
-        }
-
-        .summary-item strong {
-            color: var(--text-color); /* Labels use primary text color */
-            font-weight: 500;
-            font-family: 'Roboto', sans-serif;
-        }
-
-        .summary-amount {
-            font-size: 1.6rem; /* Larger amounts */
-            font-weight: 700;
-            font-family: 'Roboto Mono', monospace; /* Monospaced for amounts */
-            letter-spacing: 0.5px;
-        }
-
-        .income-amount {
-            color: var(--flash-success-bg); /* Green from flash messages */
-        }
-
-        .expense-amount {
-            color: var(--primary-button-bg); /* Red from primary button */
-        }
-
-        .net-savings-amount {
-            color: #17a2b8; /* A teal-like color for net savings */
-        }
-
-        /* Quick actions card specific styles */
-        .quick-actions ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 1.2rem; /* Space between list items */
-        }
-
-        .quick-actions li {
-            margin-bottom: 0; /* Override default margin */
-        }
-
-        .quick-actions a.btn {
-            width: 100%;
-            padding: 1rem 1.5rem; /* Generous padding for buttons */
-            font-size: 1.15rem;
-            font-weight: 600;
-            border-radius: 30px; /* Pill shape for action buttons */
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25); /* Subtle shadow */
-            transition: all 0.3s ease-in-out;
-        }
-
-        .quick-actions a.btn:hover {
-            transform: translateY(-3px) scale(1.01); /* Lift and slight scale */
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4); /* Deeper shadow on hover */
-        }
-
-        /* Specific button gradients */
-        .btn-add-expense {
-            background-image: linear-gradient(45deg, var(--primary-button-bg) 0%, #ff6b6b 100%);
-            border: none;
-            color: white;
-        }
-        .btn-add-expense:hover {
-            background-position: 100% 0;
-        }
-
-        .btn-add-income {
-            background-image: linear-gradient(45deg, var(--flash-success-bg) 0%, #30c04f 100%);
-            border: none;
-            color: white;
-        }
-        .btn-add-income:hover {
-            background-position: 100% 0;
-        }
-
-        .btn-manage-categories {
-            background-image: linear-gradient(45deg, var(--secondary-button-bg) 0%, #8d62ab 100%);
-            border: none;
-            color: white;
-        }
-        .btn-manage-categories:hover {
-            background-position: 100% 0;
-        }
-
-        .btn-outline-primary { /* For "View Budgets" and similar secondary actions */
-            background-color: transparent;
-            color: var(--accent-color); /* Primary text color for outline */
-            border: 2px solid var(--accent-color); /* Primary outline color */
-            box-shadow: none; /* Remove default shadow */
-        }
-        .btn-outline-primary:hover {
-            background-color: var(--accent-color); /* Fill on hover */
-            color: white;
-            box-shadow: 0 5px 15px rgba(15, 52, 96, 0.4); /* Add shadow on hover */
-            transform: translateY(-2px);
-        }
-
-        /* Animation for fade-in */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 991.98px) {
-            .welcome-section h2 {
-                font-size: 2.5rem;
-            }
-            .welcome-section p {
-                font-size: 1.1rem;
-            }
-            .dashboard-card {
-                padding: 2rem;
-            }
-            .dashboard-card h3 {
-                font-size: 1.8rem;
-            }
-            .summary-item {
-                font-size: 1.1rem;
-            }
-            .summary-amount {
-                font-size: 1.4rem;
-            }
-            .quick-actions a.btn {
-                padding: 0.8rem 1.2rem;
-                font-size: 1.05rem;
-            }
-        }
-
-        @media (max-width: 767.98px) {
-            .container {
-                padding-top: 30px;
-                padding-bottom: 30px;
-            }
-            .welcome-section h2 {
-                font-size: 2rem;
-            }
-            .welcome-section p {
-                font-size: 1rem;
-            }
-            .dashboard-card {
-                padding: 1.5rem;
-                margin-bottom: 1.5rem; /* Add spacing between stacked cards */
-            }
-            .dashboard-card h3 {
-                font-size: 1.5rem;
-            }
-            .summary-item {
-                font-size: 1rem;
-            }
-            .summary-amount {
-                font-size: 1.2rem;
-            }
-            .quick-actions a.btn {
-                padding: 0.7rem 1rem;
-                font-size: 0.95rem;
-            }
-        }
-
-        @media (max-width: 575.98px) {
-            .container {
-                padding-left: 15px;
-                padding-right: 15px;
-            }
-            .welcome-section h2 {
-                font-size: 1.8rem;
-                margin-bottom: 0.8rem;
-            }
-            .welcome-section p {
-                font-size: 0.9rem;
-            }
-            .dashboard-card {
-                padding: 1.2rem;
-            }
-            .dashboard-card h3 {
-                font-size: 1.3rem;
-                margin-bottom: 1rem;
-            }
-            .summary-item {
-                flex-direction: column; /* Stack label and amount */
-                align-items: flex-start;
-                margin-bottom: 0.5rem;
-                padding: 0.5rem 0;
-            }
-            .summary-amount {
-                margin-top: 0.2rem;
-                font-size: 1.1rem;
-            }
-            .quick-actions ul {
-                gap: 0.8rem;
-            }
-            .quick-actions a.btn {
-                padding: 0.6rem 0.8rem;
-                font-size: 0.9rem;
-            }
-        }
-    </style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="welcome-section">
+<div class="data-container dashboard-page-container"> {# Using data-container for consistency, adding a dashboard-specific class #}
+    <div class="welcome-section"> {# This class should already be styled from home.html #}
         <h2>Welcome, {{ user.username }}!</h2>
-        <p>This is your personal finance dashboard. Quickly view your financial snapshot and access essential tools to manage your expenses, income, and categories.</p>
+        <p class="tagline">This is your personal finance dashboard. Quickly view your financial snapshot and access essential tools to manage your expenses, income, and categories.</p> {# Added tagline for consistent styling #}
     </div>
 
-    <div class="row g-4">
-        <div class="col-lg-6 col-md-12">
-            <div class="dashboard-card">
-                <h3>Quick Overview</h3>
-                <div>
-                    {# Financial overview data will appear here once your transactions and reports features are ready! #}
-                    {# Once you have actual data, uncomment the following section and remove the placeholder paragraph #}
-
-                    {% if total_income is defined and total_expenses is defined and net_savings is defined %}
-                        <div class="summary-item">
-                            <span><strong>Total Income:</strong></span>
-                            <span class="summary-amount income-amount">₹{{ "%.2f"|format(total_income | float) }}</span>
-                        </div>
-                        <div class="summary-item">
-                            <span><strong>Total Expenses:</strong></span>
-                            <span class="summary-amount expense-amount">₹{{ "%.2f"|format(total_expenses | float) }}</span>
-                        </div>
-                        <hr style="border-color: rgba(224, 224, 224, 0.1);"> {# Themed HR #}
-                        <div class="summary-item">
-                            <span><strong>Net Savings:</strong></span>
-                            <span class="summary-amount net-savings-amount">₹{{ "%.2f"|format(net_savings | float) }}</span>
-                        </div>
-                    {% else %}
-                        <p class="text-center" style="color: var(--nav-link-color); font-style: italic;">
-                            Financial overview data will appear here once your transactions and reports features are ready!
-                        </p>
-                    {% endif %}
-                </div>
+    <div class="dashboard-grid"> {# New custom grid wrapper #}
+        <div class="dashboard-card"> {# Custom card styling #}
+            <h3>Quick Overview</h3>
+            <div class="summary-section"> {# New wrapper for summary items #}
+                {# Financial overview data will appear here once your transactions and reports features are ready! #}
+                {% if total_income is defined and total_expenses is defined and net_savings is defined %}
+                    <div class="summary-item">
+                        <span><strong>Total Income:</strong></span>
+                        <span class="summary-amount income-amount">₹{{ "%.2f"|format(total_income | float) }}</span> {# Corrected Rupee symbol #}
+                    </div>
+                    <div class="summary-item">
+                        <span><strong>Total Expenses:</strong></span>
+                        <span class="summary-amount expense-amount">₹{{ "%.2f"|format(total_expenses | float) }}</span> {# Corrected Rupee symbol #}
+                    </div>
+                    <hr class="summary-divider"> {# New custom divider #}
+                    <div class="summary-item total-savings"> {# Added class for net savings #}
+                        <span><strong>Net Savings:</strong></span>
+                        <span class="summary-amount net-savings-amount">₹{{ "%.2f"|format(net_savings | float) }}</span> {# Corrected Rupee symbol #}
+                    </div>
+                {% else %}
+                    <p class="empty-state-message">Financial overview data will appear here once your transactions and reports features are ready!</p>
+                {% endif %}
             </div>
         </div>
 
-        <div class="col-lg-6 col-md-12">
-            <div class="dashboard-card">
-                <h3>Quick Actions</h3>
-                <div class="quick-actions">
-                    <ul>
-                        <li><a href="{{ url_for('add_transaction', transaction_type='expense') }}" class="btn btn-add-expense">Record New Expense</a></li>
-                        <li><a href="{{ url_for('add_transaction', transaction_type='income') }}" class="btn btn-add-income">Record New Income</a></li>
-                        <li><a href="{{ url_for('list_categories') }}" class="btn btn-manage-categories">Manage Categories</a></li>
-                        <li><a href="{{ url_for('list_budgets') }}" class="btn btn-outline-primary">View Budgets</a></li>
-                        {# Add more quick action links here, e.g., view reports, manage accounts #}
-                    </ul>
-                </div>
+        <div class="dashboard-card"> {# Custom card styling #}
+            <h3>Quick Actions</h3>
+            <div class="quick-actions-list"> {# New wrapper for action links #}
+                <ul>
+                    <li><a href="{{ url_for('add_transaction', transaction_type='expense') }}" class="button primary">Record New Expense</a></li> {# Custom button class #}
+                    <li><a href="{{ url_for('add_transaction', transaction_type='income') }}" class="button secondary">Record New Income</a></li> {# Custom button class #}
+                    <li><a href="{{ url_for('list_categories') }}" class="button primary">Manage Categories</a></li> {# Custom button class #}
+                    <li><a href="{{ url_for('list_budgets') }}" class="button secondary">View Budgets</a></li> {# Custom button class #}
+                    <li><a href="{{ url_for('monthly_summary_report') }}" class="button primary">View Reports</a></li> {# Added View Reports link #}
+                </ul>
             </div>
         </div>
     </div>
